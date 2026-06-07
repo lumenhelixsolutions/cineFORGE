@@ -662,7 +662,6 @@ async def update_shot(
     ):
         if key in body:
             setattr(shot, key, body[key])
-    shot.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.commit()
     await db.refresh(shot)
     return {
@@ -1059,8 +1058,6 @@ async def _run_broll_generation(clip_id: str, shot_id: str, project_id: str) -> 
         proj = p_result.scalar_one()
 
         bridge = MPTBrollBridge(
-            registry=app_ctx.registry,
-            router=app_ctx.router,
             project_dir=settings.projects_dir / project_id,
         )
         try:

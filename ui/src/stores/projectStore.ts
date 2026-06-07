@@ -40,6 +40,21 @@ export interface Shot {
   cost_usd: number;
 }
 
+export interface BrollClip {
+  id: string;
+  shot_id: string;
+  project_id: string;
+  status: string;
+  clip_path: string | null;
+  thumbnail_path: string | null;
+  prompt_text: string;
+  cost_usd: number;
+  provider_id: string | null;
+  duration_sec: number;
+  metadata: Record<string, any>;
+  created_at: string;
+}
+
 interface StoreState {
   projects: Project[];
   activeProject: Project | null;
@@ -52,6 +67,7 @@ interface StoreState {
   stackRecommendations: any[];
   stackDefaults: any | null;
   activeTab: 'sources' | 'storyboard' | 'timeline' | 'preview' | 'trailer' | 'stackbuilder';
+  brollClips: Record<string, BrollClip[]>;
 }
 
 export const [state, setState] = createStore<StoreState>({
@@ -66,6 +82,7 @@ export const [state, setState] = createStore<StoreState>({
   stackRecommendations: [],
   stackDefaults: null,
   activeTab: 'storyboard',
+  brollClips: {},
 });
 
 export const projectStore = {
@@ -255,12 +272,53 @@ export const projectStore = {
 
   selectShot(shotId: string | null) {
     setState('selectedShotId', shotId);
+    if (shotId) {
+      this.loadBroll(shotId);
+    }
   },
 
   getSelectedShot() {
     const project = state.activeProject;
     if (!project || !state.selectedShotId) return null;
     return project.shots.find((s) => s.id === state.selectedShotId) || null;
+  },
+
+  async loadBroll(shotId: string) {
+    try {
+      const clips = await api.broll.list(shotId);
+      setState('brollClips', { ...state.brollClips, [shotId]: clips });
+    } catch (err: any) {
+      // Silently fail — B-roll is supplementary
+    }
+  },
+
+  async generateBroll(projectId: string, shotId: string) {
+    setState('loading', true);
+    try {
+      await api.broll.generate(shotId);
+      toastStore.info('B-roll generation started');
+      // Poll for a bit then load
+      setTimeout(() => this.loadBroll(shotId), 2000);
+      setTimeout(() => this.loadBroll(shotId), 5000);
+    } catch (err: any) {
+      setState('error', err.message);
+      toastStore.error(`B-roll generation failed: ${err.message}`);
+    } finally {
+      setState('loading', false);
+    }
+  },
+
+  async generateAllBroll(projectId: string) {
+    setState('loading', true);
+    try {
+      const result = await api.broll.generateAll(projectId);
+      toastStore.info(`Queued ${result.count} B-roll clips`);
+    } catch (err: any) {
+      setState('error', err.message);
+      toastStore.error(`Bulk B-roll generation failed: ${err.message}`);
+    } finally {
+      setState('loading', false);
+    }
   },
 
   async updateShot(projectId: string, shotId: string, payload: Partial<Shot>) {

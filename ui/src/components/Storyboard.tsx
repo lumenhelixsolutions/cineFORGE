@@ -1,5 +1,6 @@
 import { For, Show, createSignal } from 'solid-js';
 import { projectStore } from '../stores/projectStore';
+import { api } from '../lib/api';
 
 const statusDot = (status: string) => {
   const colors: Record<string, string> = {
@@ -25,6 +26,10 @@ const tierBadge = (tier: string) => {
 export default function Storyboard() {
   const project = () => projectStore.state.activeProject;
   const shots = () => project()?.shots || [];
+  const brollForSelected = () => {
+    const sid = projectStore.state.selectedShotId;
+    return sid ? (projectStore.state.brollClips[sid] || []) : [];
+  };
 
   return (
     <div class="flex-1 flex flex-col h-full overflow-hidden">
@@ -61,6 +66,9 @@ export default function Storyboard() {
             </button>
             <button class="btn-secondary text-xs" onClick={() => projectStore.stitch(project()!.id)}>
               Stitch
+            </button>
+            <button class="btn-secondary text-xs" onClick={() => projectStore.generateAllBroll(project()!.id)}>
+              Generate All B-Roll
             </button>
           </div>
         </div>
@@ -129,7 +137,51 @@ export default function Storyboard() {
                       >
                         Regenerate
                       </button>
+                      <button
+                        class="btn-secondary text-xs flex-1"
+                        onClick={(e) => { e.stopPropagation(); projectStore.generateBroll(project()!.id, shot.id); }}
+                        aria-label={`Generate B-roll for shot ${shot.order_index + 1}`}
+                      >
+                        Generate B-Roll
+                      </button>
                     </div>
+
+                    {/* B-Roll thumbnail grid */}
+                    <Show when={brollForSelected().length > 0}>
+                      <div class="mt-3">
+                        <div class="text-[10px] uppercase tracking-wider text-muted mb-1.5">Generated B-Roll</div>
+                        <div class="grid grid-cols-2 gap-2">
+                          <For each={brollForSelected()}>
+                            {(clip) => (
+                              <div class="bg-surface rounded overflow-hidden border border-border">
+                                <Show when={clip.thumbnail_path} fallback={
+                                  <div class="aspect-video flex items-center justify-center text-[10px] text-muted">
+                                    {clip.status}
+                                  </div>
+                                }>
+                                  <img
+                                    src={`http://127.0.0.1:8765${clip.thumbnail_path}`}
+                                    class="w-full aspect-video object-cover"
+                                    alt="B-roll thumbnail"
+                                  />
+                                </Show>
+                                <div class="p-1.5 flex items-center justify-between">
+                                  <span class={`w-1.5 h-1.5 rounded-full ${statusDot(clip.status)}`} />
+                                  <a
+                                    href={api.broll.download(clip.id)}
+                                    download=""
+                                    class="text-[10px] text-accent hover:underline"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    Download
+                                  </a>
+                                </div>
+                              </div>
+                            )}
+                          </For>
+                        </div>
+                      </div>
+                    </Show>
                   </Show>
                 </div>
               )}

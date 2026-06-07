@@ -128,7 +128,7 @@ export default function TrailerView() {
           />
           <a
             href={url()!}
-            download
+            download=""
             class="inline-block text-xs text-accent hover:underline"
           >
             Download trailer
