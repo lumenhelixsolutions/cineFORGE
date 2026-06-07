@@ -1,0 +1,13 @@
+name: "Cinematic Noir"
+description: "High contrast, low-key, 35mm anamorphic feel"
+lut_path: "neutral.cube"
+palette: "deep blacks, crushed shadows, silver highlights"
+film_stock: "Kodak Vision3 5219 pushed one stop"
+lighting_model: "single hard key, no fill, practicals only"
+camera_grammar:
+  lens_default: "50mm anamorphic"
+  motion_default: "slow deliberate dolly"
+  grade: "teal shadows, warm skin, high contrast"
+audio_profile:
+  ambient: "distant traffic, rain on glass"
+  sfx: "footsteps echo, door creaks"

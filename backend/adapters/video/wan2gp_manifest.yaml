@@ -1,0 +1,43 @@
+wan-2.2-1.3b-gguf:
+  display_name: "Wan 2.2 1.3B GGUF"
+  durations: [4, 6]
+  aspect_ratios: ["16:9", "1:1"]
+  resolutions: ["720p"]
+  max_refs: 0
+  native_audio: false
+  frame_cond: false
+  negative_prompt: true
+  notes: "Fastest, lowest quality, runs on 6GB"
+
+wan-2.2-14b-gguf:
+  display_name: "Wan 2.2 14B GGUF"
+  durations: [4, 6, 8]
+  aspect_ratios: ["16:9", "9:16", "1:1"]
+  resolutions: ["720p", "1080p"]
+  max_refs: 0
+  native_audio: false
+  frame_cond: false
+  negative_prompt: true
+  notes: "Best quality local, Q5/Q8 on 8-12GB"
+
+ltx-video-2.3:
+  display_name: "LTX-Video 2.3"
+  durations: [4, 6, 8]
+  aspect_ratios: ["16:9", "9:16"]
+  resolutions: ["720p"]
+  max_refs: 0
+  native_audio: true
+  frame_cond: true
+  negative_prompt: true
+  notes: "Fast preview, native audio, faster than real-time on 12GB"
+
+hunyuan-1.5:
+  display_name: "HunYuanVideo 1.5"
+  durations: [4, 6]
+  aspect_ratios: ["16:9", "1:1"]
+  resolutions: ["720p"]
+  max_refs: 0
+  native_audio: false
+  frame_cond: false
+  negative_prompt: true
+  notes: "Good human subjects, needs 16GB+"

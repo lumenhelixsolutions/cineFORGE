@@ -1,0 +1,70 @@
+veo-3.1:
+  display_name: "Veo 3.1"
+  endpoint: "fal-ai/veo/v3.1"
+  durations: [4, 6, 8]
+  aspect_ratios: ["16:9", "9:16", "1:1"]
+  resolutions: ["720p", "1080p"]
+  max_refs: 3
+  native_audio: true
+  frame_cond: true
+  extend: true
+  max_extend: 148
+  negative_prompt: true
+  cost_per_sec: 0.10
+  notes: "Best-in-class quality, native audio"
+
+sora-2:
+  display_name: "Sora 2"
+  endpoint: "fal-ai/sora/v2"
+  durations: [4, 6, 8, 10]
+  aspect_ratios: ["16:9", "9:16", "1:1"]
+  resolutions: ["720p", "1080p"]
+  max_refs: 0
+  native_audio: false
+  frame_cond: false
+  extend: false
+  negative_prompt: false
+  cost_per_sec: 0.08
+  notes: "High fidelity, no audio"
+
+kling-2.5:
+  display_name: "Kling 2.5"
+  endpoint: "fal-ai/kling-video/v2.5"
+  durations: [5, 10]
+  aspect_ratios: ["16:9", "9:16"]
+  resolutions: ["720p", "1080p"]
+  max_refs: 1
+  native_audio: false
+  frame_cond: true
+  extend: false
+  negative_prompt: true
+  cost_per_sec: 0.06
+  notes: "Strong motion, partial frame conditioning"
+
+hailuo-02:
+  display_name: "Hailuo 02"
+  endpoint: "fal-ai/hailuo-video/v2"
+  durations: [6]
+  aspect_ratios: ["16:9", "9:16"]
+  resolutions: ["720p"]
+  max_refs: 0
+  native_audio: false
+  frame_cond: false
+  extend: false
+  negative_prompt: false
+  cost_per_sec: 0.03
+  notes: "Budget option, single duration"
+
+runway-gen-4:
+  display_name: "Runway Gen-4"
+  endpoint: "fal-ai/runway-gen4"
+  durations: [5, 10]
+  aspect_ratios: ["16:9", "9:16", "1:1"]
+  resolutions: ["720p", "1080p"]
+  max_refs: 1
+  native_audio: false
+  frame_cond: true
+  extend: false
+  negative_prompt: true
+  cost_per_sec: 0.07
+  notes: "Cinematic control, first-frame conditioning"

@@ -1,0 +1,14 @@
+name: "Low-VRAM Documentary"
+description: "For CogVideoX-2B/5B and 6GB GPUs. Handheld feel, natural light, short clips."
+lut_path: null
+palette: "natural daylight, muted earth tones, slight desaturation"
+film_stock: "ARRI Alexa LogC, 8fps native"
+lighting_model: "available light, no artificial sources, consistent exposure"
+camera_grammar:
+  lens_default: "28mm"
+  motion_default: "subtle handheld drift"
+  grade: "neutral contrast, lifted blacks, minimal processing"
+audio_profile:
+  ambient: "room tone, distant conversation"
+  sfx: "natural sync sound, no heavy processing"
+notes: "CogVideoX produces short clips. Design for 4-6s segments. Prefer static or slow-moving subjects."

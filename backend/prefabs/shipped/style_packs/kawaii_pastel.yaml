@@ -1,0 +1,13 @@
+name: "Kawaii Pastel"
+description: "Watercolor textures, soft pastels, 24fps shutter blur"
+lut_path: null
+palette: "pink, lavender, mint, butter yellow"
+film_stock: "Fuji Eterna 250D"
+lighting_model: "soft diffused key, high fill, pastel gels"
+camera_grammar:
+  lens_default: "35mm"
+  motion_default: "gentle float"
+  grade: "desaturated shadows, pastel highlights, film grain"
+audio_profile:
+  ambient: "gentle wind chimes, soft piano"
+  sfx: "sparkle chimes, soft whoosh"

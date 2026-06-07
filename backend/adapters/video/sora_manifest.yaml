@@ -1,0 +1,14 @@
+provider_id: "openai.sora"
+display_name: "OpenAI Sora 2"
+supported_durations_sec: [4, 6, 8, 10, 20]
+supported_aspect_ratios: ["16:9", "9:16", "1:1"]
+supported_resolutions: ["720p", "1080p"]
+max_reference_images: 0
+supports_native_audio: false
+supports_frame_conditioning: false
+supports_extend: false
+max_extend_total_sec: null
+supports_negative_prompt: true
+is_local: false
+cost_per_second_usd: 0.15
+notes: "Requires OPENAI_API_KEY. Platform API availability uncertain after March 2026 consumer app shutdown."

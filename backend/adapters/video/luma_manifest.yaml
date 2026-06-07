@@ -1,0 +1,14 @@
+provider_id: "luma.dream-machine"
+display_name: "Luma Dream Machine"
+supported_durations_sec: [5, 9]
+supported_aspect_ratios: ["16:9", "9:16", "1:1", "4:3", "3:4"]
+supported_resolutions: ["540p", "720p", "1080p", "4k"]
+max_reference_images: 2
+supports_native_audio: false
+supports_frame_conditioning: true
+supports_extend: false
+max_extend_total_sec: null
+supports_negative_prompt: false
+is_local: false
+cost_per_second_usd: 0.05
+notes: "Requires LUMA_API_KEY or FAL_KEY. Supports first/last frame conditioning."

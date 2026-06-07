@@ -1,0 +1,14 @@
+name: "FramePack Cinematic"
+description: "Optimized for FramePack-F1 long-form generation. Emphasizes temporal consistency and motion clarity."
+lut_path: null
+palette: "natural color, moderate contrast, film-like"
+film_stock: "digital cinema, 30fps native"
+lighting_model: "clear key light, soft fill, avoid rapid lighting changes"
+camera_grammar:
+  lens_default: "35mm"
+  motion_default: "smooth continuous motion"
+  grade: "neutral contrast, slight warmth, stable white balance"
+audio_profile:
+  ambient: "consistent room tone, no sudden audio cuts"
+  sfx: "subtle motion cues, environmental continuity"
+notes: "FramePack excels at long continuous shots. Avoid hard cuts in prompts; prefer camera movement and scene evolution."

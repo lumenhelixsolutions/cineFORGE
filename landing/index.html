@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineForge — Turn documents into cinematic video</title>
+  <style>
+    :root {
+      --bg: #070a10;
+      --bg-elevated: #0d1117;
+      --accent: #1ae0cf;
+      --text: #fdf6d8;
+      --text-muted: #a89f91;
+      --border: #1e2630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    .container { width: 92%; max-width: 1100px; margin: 0 auto; padding: 4rem 0; }
+    h1, h2, h3 { line-height: 1.2; }
+    h2 { font-size: 2rem; margin-bottom: 1.5rem; text-align: center; }
+    p { color: var(--text-muted); }
+    /* Hero */
+    .hero { text-align: center; padding: 6rem 0 4rem; }
+    .hero h1 { font-size: 3rem; margin-bottom: 1rem; }
+    .hero p { font-size: 1.25rem; max-width: 600px; margin: 0 auto 2rem; }
+    .btn {
+      display: inline-block;
+      padding: 0.85rem 1.6rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      margin: 0.25rem;
+      transition: transform .15s, opacity .15s;
+    }
+    .btn:hover { transform: translateY(-2px); opacity: .9; }
+    .btn-primary { background: var(--accent); color: var(--bg); }
+    .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
+    /* Features */
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+    .feature-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+    }
+    .feature-card h3 { color: var(--accent); margin-bottom: .5rem; }
+    /* Models */
+    .models table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .models th, .models td { padding: .75rem; border-bottom: 1px solid var(--border); text-align: left; }
+    .models th { color: var(--accent); font-weight: 600; }
+    .models td { color: var(--text-muted); }
+    .models tr:hover td { color: var(--text); }
+    /* StackBuilder */
+    .stackbuilder {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      text-align: center;
+    }
+    .screenshot {
+      background: linear-gradient(135deg, #111820 0%, #0a0f16 100%);
+      border: 1px dashed var(--border);
+      border-radius: 0.5rem;
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    /* Pricing */
+    .pricing { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+    .pricing-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 2rem;
+      text-align: center;
+    }
+    .pricing-card h3 { color: var(--accent); font-size: 1.5rem; margin-bottom: .5rem; }
+    .price { font-size: 2.25rem; font-weight: 700; margin: 1rem 0; }
+    .price span { font-size: 1rem; color: var(--text-muted); font-weight: 400; }
+    /* Footer */
+    footer { text-align: center; padding: 3rem 0; border-top: 1px solid var(--border); }
+    footer .links { margin-bottom: 1rem; }
+    footer .links a { margin: 0 .75rem; color: var(--text-muted); }
+    footer .links a:hover { color: var(--accent); }
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 2rem; }
+      .hero p { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero container">
+    <h1>CineForge</h1>
+    <p>Turn documents into cinematic video with AI-directed shots, multi-model rendering, and automated post-processing.</p>
+    <div>
+      <a href="#" class="btn btn-primary">Download for Windows</a>
+      <a href="#" class="btn btn-secondary">Download for macOS</a>
+      <a href="#" class="btn btn-secondary">Download for Linux</a>
+    </div>
+  </section>
+
+  <section class="container">
+    <h2>Features</h2>
+    <div class="features">
+      <div class="feature-card">
+        <h3>Source Ingestion</h3>
+        <p>Import PDFs, Markdown, web pages, and scripts. Extract structure, characters, and scenes automatically.</p>
+      </div>
+      <div class="feature-card">
+        <h3>AI Director</h3>
+        <p>Generates shot-level storyboards with camera angles, continuity, and emotional register from your source material.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Shot Storyboard</h3>
+        <p>Visualize every cut before rendering. Adjust timing, transitions, and framing in a unified timeline.</p>
+      </div>
+      <div class="feature-card">
+        <h3>PromptForge</h3>
+        <p>Auto-optimizes prompts for each video model, ensuring consistent style and maximum fidelity.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Multi-Model Render</h3>
+        <p>Route shots to the best engine — Veo, Kling, Sora, Wan2GP, ComfyUI, and more — from one queue.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Post-Processing</h3>
+        <p>Built-in upscaling, frame interpolation, audio sync, and export to MP4 / ProRes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container models">
+    <h2>Model Support</h2>
+    <table>
+      <thead>
+        <tr><th>Model</th><th>Text-to-Video</th><th>Image-to-Video</th><th>Native Audio</th><th>Extend</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Veo 3.1</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Kling 3.0</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td>Sora 2</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td>Wan2GP</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td>ComfyUI</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td>FramePack</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td>CogVideoX</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+        <tr><td>Luma Dream Machine</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="container">
+    <h2>StackBuilder</h2>
+    <div class="stackbuilder">
+      <div class="screenshot">StackBuilder UI Screenshot Placeholder</div>
+      <p>Visually compose your render stack: pick models, set fallback chains, and lock budgets per shot. No YAML required.</p>
+    </div>
+  </section>
+
+  <section class="container">
+    <h2>Pricing</h2>
+    <div class="pricing">
+      <div class="pricing-card">
+        <h3>Free</h3>
+        <div class="price">$0 <span>/ mo</span></div>
+        <p>Local models only (Wan2GP, ComfyUI, FramePack, CogVideoX). Watermarked export. Community support.</p>
+        <a href="#" class="btn btn-secondary">Get Started</a>
+      </div>
+      <div class="pricing-card">
+        <h3>Pro</h3>
+        <div class="price">$19 <span>/ mo</span></div>
+        <p>Cloud credits for Veo, Kling, Sora, and Luma. Priority queue, no watermark, 1080p export. Email support.</p>
+        <a href="#" class="btn btn-primary">Upgrade to Pro</a>
+      </div>
+      <div class="pricing-card">
+        <h3>Enterprise</h3>
+        <div class="price">Custom</div>
+        <p>Dedicated inference, SLA, custom model onboarding, SSO, and audit logs. Contact us for pricing.</p>
+        <a href="#" class="btn btn-secondary">Contact Sales</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="container">
+    <div class="links">
+      <a href="#">GitHub</a>
+      <a href="#">Discord</a>
+      <a href="#">Docs</a>
+    </div>
+    <p>© 2026 CineForge. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>

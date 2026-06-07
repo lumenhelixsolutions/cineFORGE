@@ -1,0 +1,14 @@
+name: "RIFE Motion"
+description: "Optimized for RIFE-interpolated output. High motion, fluid action sequences."
+lut_path: null
+palette: "high saturation, crisp edges, motion-friendly contrast"
+film_stock: "high-speed digital, 60fps target"
+lighting_model: "bright even lighting, minimize motion blur in source"
+camera_grammar:
+  lens_default: "24mm wide"
+  motion_default: "fast pan, tracking shot"
+  grade: "sharp detail, high micro-contrast, deblur emphasis"
+audio_profile:
+  ambient: "clean studio silence"
+  sfx: "sharp transient sounds, motion whoosh"
+notes: "RIFE interpolation doubles FPS. Source clips should have clear frame-to-frame continuity. Avoid extreme motion blur."

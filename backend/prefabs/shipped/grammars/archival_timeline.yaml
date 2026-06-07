@@ -1,0 +1,27 @@
+name: "Archival Timeline"
+description: "Historical narrative with period-appropriate visuals. Chronological."
+shots:
+  - type: period_establishing
+    duration: 6
+    tier: broll
+    notes: "Year/era identifier. Architecture, fashion, technology."
+  - type: document_reveal
+    duration: 6
+    tier: standard
+    notes: "Primary source: letter, photo, newspaper. Slow pan."
+  - type: narrator_anchor
+    duration: 8
+    tier: hero
+    notes: "Subject or location central to the period."
+  - type: transition_montage
+    duration: 6
+    tier: broll
+    notes: "Time passage: seasons, aging, construction."
+  - type: legacy_shot
+    duration: 6
+    tier: hero
+    notes: "Modern view of historical site. Then/now contrast."
+  - type: closing_reflection
+    duration: 6
+    tier: standard
+    notes: "Quiet moment. Let history settle."

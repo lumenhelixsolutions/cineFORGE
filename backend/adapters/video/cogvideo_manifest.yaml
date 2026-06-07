@@ -1,0 +1,35 @@
+cogvideox-2b:
+  display_name: "CogVideoX 2B"
+  durations: [4, 6]
+  aspect_ratios: ["16:9", "1:1"]
+  resolutions: ["720p"]
+  max_refs: 0
+  native_audio: false
+  frame_cond: false
+  negative_prompt: true
+  cost_per_sec: 0.0
+  notes: "~3.6GB VRAM 16-bit. Short clips. Apache-2.0."
+
+cogvideox-5b:
+  display_name: "CogVideoX 5B"
+  durations: [4, 6]
+  aspect_ratios: ["16:9", "1:1"]
+  resolutions: ["720p"]
+  max_refs: 0
+  native_audio: false
+  frame_cond: false
+  negative_prompt: true
+  cost_per_sec: 0.0
+  notes: "~4.4GB VRAM 16-bit. Better quality. Non-commercial license."
+
+cogvideox-5b-i2v:
+  display_name: "CogVideoX 5B I2V"
+  durations: [4, 6]
+  aspect_ratios: ["16:9", "1:1"]
+  resolutions: ["720p"]
+  max_refs: 1
+  native_audio: false
+  frame_cond: true
+  negative_prompt: true
+  cost_per_sec: 0.0
+  notes: "Image-to-video variant. Single reference image supported."

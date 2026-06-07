@@ -1,0 +1,23 @@
+framepack-f1-13b:
+  display_name: "FramePack F1 13B"
+  durations: [4, 6, 8, 10, 12, 16, 24, 32, 60]
+  aspect_ratios: ["16:9", "9:16", "1:1", "4:3"]
+  resolutions: ["480p", "720p"]
+  max_refs: 1
+  native_audio: false
+  frame_cond: true
+  negative_prompt: true
+  cost_per_sec: 0.0
+  notes: "Next-frame prediction. Fixed cost per frame. 6GB VRAM for 60s@30fps. Apache-2.0."
+
+framepack-f1-24b:
+  display_name: "FramePack F1 24B"
+  durations: [4, 6, 8, 10, 12, 16, 24, 32, 60]
+  aspect_ratios: ["16:9", "9:16", "1:1", "4:3"]
+  resolutions: ["480p", "720p", "1080p"]
+  max_refs: 1
+  native_audio: false
+  frame_cond: true
+  negative_prompt: true
+  cost_per_sec: 0.0
+  notes: "Higher quality variant. 12GB+ VRAM recommended."

@@ -1,0 +1,76 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.env/
+.venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tauri / Node
+node_modules/
+ui/dist/
+src-tauri/target/
+src-tauri/gen/
+*.log
+
+# CineForge data
+data/
+.cineforge/
+projects/
+cache/
+*.db
+*.db-journal
+*.db-wal
+
+# Media
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.wav
+*.mp3
+*.aac
+
+# Temporary
+/tmp/
+temp/
+*.tmp
+.pytest_tmp/
+
+# Reports
+perf_report.json
+
+# Docs build output
+docs/index.html
+docs/openapi.json

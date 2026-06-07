@@ -1,0 +1,13 @@
+name: "Whiteboard Explainer"
+description: "Flat, animated, NotebookLM-classic feel"
+lut_path: null
+palette: "white background, black ink, accent blue"
+film_stock: "digital vector"
+lighting_model: "even flat studio light"
+camera_grammar:
+  lens_default: "50mm"
+  motion_default: "static or slow push"
+  grade: "high contrast black on white, no shadows"
+audio_profile:
+  ambient: "clean studio silence"
+  sfx: "marker on board, subtle click"

@@ -1,0 +1,14 @@
+provider_id: "kling.3.0"
+display_name: "Kling 3.0"
+supported_durations_sec: [5, 10]
+supported_aspect_ratios: ["16:9", "9:16", "1:1"]
+supported_resolutions: ["720p", "1080p"]
+max_reference_images: 1
+supports_native_audio: false
+supports_frame_conditioning: true
+supports_extend: false
+max_extend_total_sec: null
+supports_negative_prompt: true
+is_local: false
+cost_per_second_usd: 0.075
+notes: "Requires KLING_API_KEY. Async task-based API via api.klingai.com."

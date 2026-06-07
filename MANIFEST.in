@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include CLAUDE.md
+include lessons.md
+include THIRD_PARTY.md
+include OPEN_ISSUES.md
+recursive-include backend/prefabs/shipped *.yaml *.py *.json
+recursive-include ui/dist *
+recursive-include src-tauri *

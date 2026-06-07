@@ -1,0 +1,13 @@
+name: "Archival Sepia"
+description: "For historical / research narratives"
+lut_path: null
+palette: "sepia, aged paper, faded ink"
+film_stock: "nitrate scan"
+lighting_model: "soft diffused, no hard shadows"
+camera_grammar:
+  lens_default: "50mm"
+  motion_default: "static or slow pan"
+  grade: "sepia tone, vignette, dust and scratches"
+audio_profile:
+  ambient: "phonograph crackle, distant period music"
+  sfx: "page turn, quill scratch"

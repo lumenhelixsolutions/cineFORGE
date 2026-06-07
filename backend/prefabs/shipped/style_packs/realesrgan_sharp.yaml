@@ -1,0 +1,14 @@
+name: "Real-ESRGAN Sharp"
+description: "For super-res upscaling pipeline. Emphasizes fine detail and texture."
+lut_path: null
+palette: "high detail, micro-contrast, texture-rich"
+film_stock: "4K digital master, x2 or x4 upscale target"
+lighting_model: "hard key, deep shadows, maximum detail in midtones"
+camera_grammar:
+  lens_default: "50mm macro-capable"
+  motion_default: "static or slow push"
+  grade: "maximum sharpness, clarity boost, no softening"
+audio_profile:
+  ambient: "clean"
+  sfx: "minimal"
+notes: "Real-ESRGAN upscales frame-by-frame. Source should be sharp at native resolution. Avoid heavy film grain (amplifies noise)."

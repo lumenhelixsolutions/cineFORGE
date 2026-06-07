@@ -1,0 +1,18 @@
+name: "Mini Documentary"
+description: "Establishing → character_intro → conflict → revelation → resolution"
+shots:
+  - type: establishing
+    duration: 6
+    tier: broll
+  - type: character_intro
+    duration: 6
+    tier: hero
+  - type: conflict
+    duration: 8
+    tier: hero
+  - type: revelation
+    duration: 6
+    tier: standard
+  - type: resolution
+    duration: 6
+    tier: hero
