@@ -1,4 +1,5 @@
 """Token usage metering and budget enforcement."""
+
 from __future__ import annotations
 
 import logging
@@ -24,15 +25,19 @@ class TokenCounter:
         self.total_output += usage.output_tokens
         self.total_cached += usage.cached_input_tokens
         self.total_cost += usage.cost_usd
-        logger.info("Tokens: +%d in / +%d out / +%d cached | cost $%.4f | total $%.4f",
-                      usage.input_tokens, usage.output_tokens, usage.cached_input_tokens,
-                      usage.cost_usd, self.total_cost)
+        logger.info(
+            "Tokens: +%d in / +%d out / +%d cached | cost $%.4f | total $%.4f",
+            usage.input_tokens,
+            usage.output_tokens,
+            usage.cached_input_tokens,
+            usage.cost_usd,
+            self.total_cost,
+        )
 
     def check_budget(self, projected_cost: float) -> bool:
         """Return True if projected cost stays within budget."""
         if self.total_cost + projected_cost > self.budget_usd:
-            logger.warning("Budget exceeded: $%.4f + $%.4f > $%.4f",
-                           self.total_cost, projected_cost, self.budget_usd)
+            logger.warning("Budget exceeded: $%.4f + $%.4f > $%.4f", self.total_cost, projected_cost, self.budget_usd)
             return False
         return True
 

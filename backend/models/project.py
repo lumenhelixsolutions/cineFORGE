@@ -1,11 +1,12 @@
 """SQLAlchemy 2.x mapped models using mapped_column."""
+
 from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any
 
-from sqlalchemy import String, Integer, DateTime, JSON, ForeignKey, create_engine
+from sqlalchemy import String, Integer, DateTime, ForeignKey, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.dialects.sqlite import JSON as SQLiteJSON
 
@@ -33,7 +34,9 @@ class Project(Base):
     tokens_used_cached: Mapped[int] = mapped_column(Integer, default=0)
 
     sources: Mapped[list[SourceDoc]] = relationship("SourceDoc", back_populates="project", cascade="all, delete-orphan")
-    treatments: Mapped[list[Treatment]] = relationship("Treatment", back_populates="project", cascade="all, delete-orphan")
+    treatments: Mapped[list[Treatment]] = relationship(
+        "Treatment", back_populates="project", cascade="all, delete-orphan"
+    )
     shots: Mapped[list[Shot]] = relationship("Shot", back_populates="project", cascade="all, delete-orphan")
     renders: Mapped[list[RenderJob]] = relationship("RenderJob", back_populates="project", cascade="all, delete-orphan")
 

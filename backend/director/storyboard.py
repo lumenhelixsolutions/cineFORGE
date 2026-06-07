@@ -1,11 +1,11 @@
 """Stage B: Treatment → Shot[] with continuity tags."""
+
 from __future__ import annotations
 
 import json
 import logging
 from typing import Any, cast
 
-from pydantic import BaseModel
 
 from backend.adapters.protocols import LLMDirector, LLMRequest, LLMUsage, VideoCapabilities
 
@@ -69,8 +69,8 @@ SHOT_SCHEMA = {
                     "characters": {"type": "array", "items": {"type": "string"}},
                     "location": {"type": "string"},
                     "time_of_day": {"type": "string"},
-                    "props": {"type": "array", "items": {"type": "string"}}
-                }
+                    "props": {"type": "array", "items": {"type": "string"}},
+                },
             },
             "bridge_strategy": {"type": "string", "enum": ["hard_cut", "match_cut", "frame_bridge", "extend"]},
             "preferred_bridge": {"type": "string", "enum": ["hard_cut", "match_cut", "frame_bridge", "extend"]},
@@ -78,8 +78,8 @@ SHOT_SCHEMA = {
             "lighting": {"type": "string", "maxLength": 100},
             "audio_hint": {"type": "string", "maxLength": 60},
         },
-        "required": ["id", "order_index", "duration_sec", "tier", "summary", "bridge_strategy", "preferred_bridge"]
-    }
+        "required": ["id", "order_index", "duration_sec", "tier", "summary", "bridge_strategy", "preferred_bridge"],
+    },
 }
 
 

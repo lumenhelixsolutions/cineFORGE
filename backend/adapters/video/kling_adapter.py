@@ -1,4 +1,5 @@
 """Kling 3.0 adapter — direct API via api.klingai.com."""
+
 from __future__ import annotations
 
 import asyncio
@@ -13,7 +14,6 @@ from typing import Any
 import httpx
 
 from backend.adapters.protocols import (
-    VideoModel,
     VideoCapabilities,
     VideoGenRequest,
     VideoGenResult,
@@ -64,9 +64,7 @@ class KlingAdapter:
         }
 
         model_variant = (
-            "kling-v3-image-to-video"
-            if (req.reference_images or req.first_frame)
-            else "kling-v3-text-to-video"
+            "kling-v3-image-to-video" if (req.reference_images or req.first_frame) else "kling-v3-text-to-video"
         )
 
         payload: dict[str, Any] = {
@@ -79,9 +77,7 @@ class KlingAdapter:
         if req.negative_prompt:
             payload["negative_prompt"] = req.negative_prompt
 
-        image_path = req.first_frame or (
-            req.reference_images[0] if req.reference_images else None
-        )
+        image_path = req.first_frame or (req.reference_images[0] if req.reference_images else None)
         if image_path is not None:
             payload["image_start"] = self._image_to_data_uri(image_path)
 
@@ -113,9 +109,7 @@ class KlingAdapter:
                 provider_id=self.capabilities.provider_id,
             )
 
-    async def _poll_task(
-        self, client: httpx.AsyncClient, task_id: str, headers: dict[str, str]
-    ) -> str:
+    async def _poll_task(self, client: httpx.AsyncClient, task_id: str, headers: dict[str, str]) -> str:
         for _ in range(120):
             resp = await client.get(
                 f"{self._base_url}/v1/tasks/{task_id}",
@@ -134,9 +128,7 @@ class KlingAdapter:
                     raise RuntimeError("No video URL in completed Kling task")
                 return str(video_url)
             if status in ("failed", "error"):
-                raise RuntimeError(
-                    f"Kling task {task_id} failed: {data.get('error', 'unknown error')}"
-                )
+                raise RuntimeError(f"Kling task {task_id} failed: {data.get('error', 'unknown error')}")
             if status == "rate_limited":
                 raise RuntimeError("Kling rate limit exceeded")
             await asyncio.sleep(5)
@@ -162,13 +154,7 @@ class KlingAdapter:
         data = path.read_bytes()
         b64 = base64.b64encode(data).decode("ascii")
         suffix = path.suffix.lower()
-        mime = (
-            "image/jpeg"
-            if suffix in (".jpg", ".jpeg")
-            else "image/png"
-            if suffix == ".png"
-            else "image/webp"
-        )
+        mime = "image/jpeg" if suffix in (".jpg", ".jpeg") else "image/png" if suffix == ".png" else "image/webp"
         return f"data:{mime};base64,{b64}"
 
     def _save_clip(self, data: bytes) -> Path:

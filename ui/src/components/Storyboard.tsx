@@ -102,6 +102,7 @@ export default function Storyboard() {
                         class="w-full h-full object-cover rounded"
                         preload="metadata"
                         muted
+                        aria-label={`Preview for shot ${shot.order_index + 1}`}
                       />
                     </Show>
                   </div>
@@ -124,6 +125,7 @@ export default function Storyboard() {
                       <button
                         class="btn-primary text-xs flex-1"
                         onClick={(e) => { e.stopPropagation(); projectStore.render(project()!.id, [shot.id]); }}
+                        aria-label={`Regenerate shot ${shot.order_index + 1}`}
                       >
                         Regenerate
                       </button>

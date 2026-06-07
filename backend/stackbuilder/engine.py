@@ -3,6 +3,7 @@
 The most robust logic in the app. Given project metadata (topic, duration,
 hardware, budget, deadline), returns ranked profile recommendations.
 """
+
 from __future__ import annotations
 
 import logging
@@ -17,24 +18,26 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ProjectConstraints:
     """User-declared or inferred project constraints."""
-    topic: str = "documentary"           # documentary, explainer, archival, news, cinematic, research
-    target_duration_min: float = 1.0     # minutes
+
+    topic: str = "documentary"  # documentary, explainer, archival, news, cinematic, research
+    target_duration_min: float = 1.0  # minutes
     budget_usd: float = 5.00
     deadline_hours: float = 24.0
-    vram_available_gb: int = 0           # 0 = no GPU / cloud only
-    prioritize: str = "balanced"         # quality, speed, cost, depth, balanced
-    source_count: int = 1                # number of uploaded documents
-    word_count: int = 0                  # total source text length
+    vram_available_gb: int = 0  # 0 = no GPU / cloud only
+    prioritize: str = "balanced"  # quality, speed, cost, depth, balanced
+    source_count: int = 1  # number of uploaded documents
+    word_count: int = 0  # total source text length
 
 
 @dataclass
 class ProfileScore:
     """Scored result for a single profile."""
+
     name: str
     tradeoffs: ProfileTradeoffs
     overall_score: float
     dimension_scores: dict[str, float]
-    recommendation: str                # "strong_match", "viable", "not_recommended"
+    recommendation: str  # "strong_match", "viable", "not_recommended"
     warnings: list[str]
 
 
@@ -43,11 +46,11 @@ class StackBuilder:
 
     # Weight presets by prioritize mode
     WEIGHTS: dict[str, dict[str, float]] = {
-        "quality":   {"quality": 0.40, "speed": 0.10, "cost": 0.10, "depth": 0.25, "compat": 0.15},
-        "speed":     {"quality": 0.15, "speed": 0.40, "cost": 0.15, "depth": 0.10, "compat": 0.20},
-        "cost":      {"quality": 0.10, "speed": 0.10, "cost": 0.40, "depth": 0.20, "compat": 0.20},
-        "depth":     {"quality": 0.20, "speed": 0.05, "cost": 0.15, "depth": 0.45, "compat": 0.15},
-        "balanced":  {"quality": 0.25, "speed": 0.20, "cost": 0.20, "depth": 0.20, "compat": 0.15},
+        "quality": {"quality": 0.40, "speed": 0.10, "cost": 0.10, "depth": 0.25, "compat": 0.15},
+        "speed": {"quality": 0.15, "speed": 0.40, "cost": 0.15, "depth": 0.10, "compat": 0.20},
+        "cost": {"quality": 0.10, "speed": 0.10, "cost": 0.40, "depth": 0.20, "compat": 0.20},
+        "depth": {"quality": 0.20, "speed": 0.05, "cost": 0.15, "depth": 0.45, "compat": 0.15},
+        "balanced": {"quality": 0.25, "speed": 0.20, "cost": 0.20, "depth": 0.20, "compat": 0.15},
     }
 
     # Topic → default style pack mapping
@@ -76,7 +79,13 @@ class StackBuilder:
 
     # Topic → recommended profiles (ordered preference)
     TOPIC_PROFILES: dict[str, list[str]] = {
-        "documentary": ["documentary_deep", "hybrid_balanced", "documentary_fast", "framepack_hybrid", "archival_premium"],
+        "documentary": [
+            "documentary_deep",
+            "hybrid_balanced",
+            "documentary_fast",
+            "framepack_hybrid",
+            "archival_premium",
+        ],
         "explainer": ["explainer_budget", "research_walkthrough", "hybrid_balanced", "documentary_fast"],
         "archival": ["archival_premium", "documentary_deep", "hybrid_balanced"],
         "news": ["news_breaking", "documentary_fast", "hybrid_balanced"],
@@ -106,14 +115,16 @@ class StackBuilder:
             else:
                 rec = "not_recommended"
 
-            results.append(ProfileScore(
-                name=name,
-                tradeoffs=tradeoffs,
-                overall_score=round(overall, 3),
-                dimension_scores={k: round(v, 3) for k, v in scores.items()},
-                recommendation=rec,
-                warnings=warnings,
-            ))
+            results.append(
+                ProfileScore(
+                    name=name,
+                    tradeoffs=tradeoffs,
+                    overall_score=round(overall, 3),
+                    dimension_scores={k: round(v, 3) for k, v in scores.items()},
+                    recommendation=rec,
+                    warnings=warnings,
+                )
+            )
 
         # Sort by overall score descending
         results.sort(key=lambda x: x.overall_score, reverse=True)
@@ -167,7 +178,9 @@ class StackBuilder:
 
         if c.target_duration_min > t.max_recommended_duration_min:
             scores["compat"] *= 0.7
-            warnings.append(f"Duration {c.target_duration_min}min exceeds recommended {t.max_recommended_duration_min}min")
+            warnings.append(
+                f"Duration {c.target_duration_min}min exceeds recommended {t.max_recommended_duration_min}min"
+            )
 
         # Apply weights
         weighted = {

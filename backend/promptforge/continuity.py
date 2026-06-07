@@ -1,4 +1,5 @@
 """Continuity bible — per-project character/location/camera state."""
+
 from __future__ import annotations
 
 import logging

@@ -3,13 +3,13 @@
 Session tracking: render success/failure, token usage, adapter popularity.
 Cost aggregation per provider.
 """
+
 from __future__ import annotations
 
 import json
 import logging
 import os
-import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -28,7 +28,7 @@ def _ensure_session() -> None:
     global _SESSION_FILE
     if _SESSION_FILE is None:
         _TELEMETRY_DIR.mkdir(parents=True, exist_ok=True)
-        ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         _SESSION_FILE = _TELEMETRY_DIR / f"session_{ts}.jsonl"
 
 
@@ -36,7 +36,7 @@ def _write(event: dict[str, Any]) -> None:
     if not _enabled():
         return
     _ensure_session()
-    event["_ts"] = datetime.utcnow().isoformat()
+    event["_ts"] = datetime.now(timezone.utc).isoformat()
     _BUFFER.append(event)
     if _SESSION_FILE is not None:
         with open(_SESSION_FILE, "a", encoding="utf-8") as f:
@@ -52,25 +52,29 @@ def log_render_event(
     error: str | None = None,
 ) -> None:
     """Log a render attempt outcome."""
-    _write({
-        "event": "render",
-        "shot_id": shot_id,
-        "provider_id": provider_id,
-        "success": success,
-        "duration_sec": duration_sec,
-        "cost_usd": cost_usd,
-        "error": error,
-    })
+    _write(
+        {
+            "event": "render",
+            "shot_id": shot_id,
+            "provider_id": provider_id,
+            "success": success,
+            "duration_sec": duration_sec,
+            "cost_usd": cost_usd,
+            "error": error,
+        }
+    )
 
 
 def log_adapter_use(adapter_kind: str, provider_id: str, task: str) -> None:
     """Log adapter retrieval/invocation."""
-    _write({
-        "event": "adapter_use",
-        "adapter_kind": adapter_kind,
-        "provider_id": provider_id,
-        "task": task,
-    })
+    _write(
+        {
+            "event": "adapter_use",
+            "adapter_kind": adapter_kind,
+            "provider_id": provider_id,
+            "task": task,
+        }
+    )
 
 
 def log_stitch_event(
@@ -80,13 +84,15 @@ def log_stitch_event(
     duration_sec: float,
 ) -> None:
     """Log a stitch operation."""
-    _write({
-        "event": "stitch",
-        "project_id": project_id,
-        "shot_count": shot_count,
-        "output_path": output_path,
-        "duration_sec": duration_sec,
-    })
+    _write(
+        {
+            "event": "stitch",
+            "project_id": project_id,
+            "shot_count": shot_count,
+            "output_path": output_path,
+            "duration_sec": duration_sec,
+        }
+    )
 
 
 def session_summary() -> dict[str, Any]:

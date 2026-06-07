@@ -3,6 +3,7 @@
 Veo 3.1 rewards director-grade prompts. Template order matters because
 Veo's attention biases toward the first half of the prompt.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -114,7 +115,6 @@ class PromptForge:
     def _build_camera(self, continuity: dict[str, Any], tier: str) -> str:
         default_lens = self.continuity.camera_grammar.get("lens_default", "35mm")
         default_motion = self.continuity.camera_grammar.get("motion_default", "slow handheld")
-        grade = self.continuity.camera_grammar.get("grade", "")
 
         # Tier-based camera variation
         if tier == "hero":
@@ -160,7 +160,7 @@ class PromptForge:
 
     def _tighten(self, prompt: str) -> str:
         # Ensure 3-6 sentences, 100-150 words
-        sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', prompt) if s.strip()]
+        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", prompt) if s.strip()]
         if len(sentences) < 3:
             # Pad with context detail if too short
             pass

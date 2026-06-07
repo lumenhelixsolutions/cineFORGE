@@ -1,4 +1,5 @@
 """Typed FFmpeg wrapper — never use shell=True."""
+
 from __future__ import annotations
 
 import logging
@@ -31,31 +32,57 @@ def extract_last_frame(clip: Path, out: Path | None = None, scale: int = 320) ->
     """Extract the last frame of a video clip."""
     if out is None:
         out = clip.with_suffix(".last_frame.jpg")
-    run_ffmpeg([
-        "-sseof", "-0.1", "-i", clip,
-        "-vf", f"scale={scale}:-1",
-        "-vframes", "1",
-        out,
-    ])
+    run_ffmpeg(
+        [
+            "-sseof",
+            "-0.1",
+            "-i",
+            clip,
+            "-vf",
+            f"scale={scale}:-1",
+            "-vframes",
+            "1",
+            out,
+        ]
+    )
     return out
 
 
 def concat_clips(clip_list_path: Path, output: Path) -> None:
     """Concatenate clips using the concat demuxer."""
-    run_ffmpeg([
-        "-f", "concat", "-safe", "0",
-        "-i", clip_list_path,
-        "-c", "copy",
-        output,
-    ])
+    run_ffmpeg(
+        [
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            clip_list_path,
+            "-c",
+            "copy",
+            output,
+        ]
+    )
 
 
 def normalize_video(input_path: Path, output: Path, width: int, height: int) -> None:
     """Normalize video to target dimensions with padding."""
-    run_ffmpeg([
-        "-i", input_path,
-        "-vf", f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black",
-        "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-        "-c:a", "aac", "-b:a", "192k",
-        output,
-    ])
+    run_ffmpeg(
+        [
+            "-i",
+            input_path,
+            "-vf",
+            f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "fast",
+            "-crf",
+            "23",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "192k",
+            output,
+        ]
+    )

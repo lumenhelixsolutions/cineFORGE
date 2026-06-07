@@ -1,18 +1,14 @@
 """Export all docs/*.md into a single dark-themed HTML page."""
+
 from __future__ import annotations
 
 import datetime
 import re
 from pathlib import Path
-from typing import Any
 
 
 def _escape_html(text: str) -> str:
-    return (
-        text.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-    )
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def _inline_code(text: str) -> str:
@@ -40,7 +36,7 @@ def markdown_to_html(md_text: str) -> str:
     for line in lines:
         if line.startswith("```"):
             if in_code:
-                out.append(f'<pre><code>{_escape_html("\n".join(code_buffer))}</code></pre>')
+                out.append(f"<pre><code>{_escape_html('\n'.join(code_buffer))}</code></pre>")
                 code_buffer = []
                 in_code = False
             else:
@@ -55,16 +51,16 @@ def markdown_to_html(md_text: str) -> str:
 
         # Headers
         if line.startswith("# "):
-            out.append(f'<h1>{_process_line(line[2:])}</h1>')
+            out.append(f"<h1>{_process_line(line[2:])}</h1>")
         elif line.startswith("## "):
-            out.append(f'<h2>{_process_line(line[3:])}</h2>')
+            out.append(f"<h2>{_process_line(line[3:])}</h2>")
         elif line.startswith("### "):
-            out.append(f'<h3>{_process_line(line[4:])}</h3>')
+            out.append(f"<h3>{_process_line(line[4:])}</h3>")
         elif line.startswith("#### "):
-            out.append(f'<h4>{_process_line(line[5:])}</h4>')
+            out.append(f"<h4>{_process_line(line[5:])}</h4>")
         # Lists
         elif line.startswith("- "):
-            out.append(f'<li>{_process_line(line[2:])}</li>')
+            out.append(f"<li>{_process_line(line[2:])}</li>")
         # Table rows (simple)
         elif line.startswith("| ") and " | " in line:
             cells = [c.strip() for c in line.split("|")[1:-1]]
@@ -75,10 +71,10 @@ def markdown_to_html(md_text: str) -> str:
         elif line.strip() == "":
             out.append("<br/>")
         else:
-            out.append(f'<p>{_process_line(line)}</p>')
+            out.append(f"<p>{_process_line(line)}</p>")
 
     if in_code and code_buffer:
-        out.append(f'<pre><code>{_escape_html("\n".join(code_buffer))}</code></pre>')
+        out.append(f"<pre><code>{_escape_html('\n'.join(code_buffer))}</code></pre>")
 
     # Wrap consecutive <li> in <ul>
     result: list[str] = []
@@ -123,7 +119,8 @@ def build_page(sections: dict[str, str]) -> str:
         html = markdown_to_html(sections[name])
         body_parts.append(f'<section id="{name}">\n{html}\n</section>\n')
 
-    return """<!DOCTYPE html>
+    return (
+        """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -193,13 +190,18 @@ nav a { margin-right: 1rem; font-weight: 600; }
   <a href="#stack_builder">StackBuilder</a>
   <a href="#troubleshooting">Troubleshooting</a>
 </nav>
-""" + "\n".join(body_parts) + """
+"""
+        + "\n".join(body_parts)
+        + """
 <footer style="margin-top:3rem; color:var(--muted); font-size:0.85rem;">
-  CineForge Docs — generated on """ + datetime.datetime.now(datetime.timezone.utc).isoformat() + """
+  CineForge Docs — generated on """
+        + datetime.datetime.now(datetime.timezone.utc).isoformat()
+        + """
 </footer>
 </body>
 </html>
 """
+    )
 
 
 def main() -> None:

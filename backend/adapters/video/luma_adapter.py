@@ -1,4 +1,5 @@
 """Luma Dream Machine adapter — direct API via api.lumalabs.ai or fal.ai fallback."""
+
 from __future__ import annotations
 
 import asyncio
@@ -13,7 +14,6 @@ from typing import Any
 import httpx
 
 from backend.adapters.protocols import (
-    VideoModel,
     VideoCapabilities,
     VideoGenRequest,
     VideoGenResult,
@@ -31,9 +31,7 @@ class LumaAdapter:
         self._model_id = model_id
         self._luma_key = os.getenv("LUMA_API_KEY", "")
         self._fal_key = os.getenv("FAL_KEY", "")
-        self._base_url = os.getenv(
-            "LUMA_BASE_URL", "https://api.lumalabs.ai/dream-machine/v1"
-        )
+        self._base_url = os.getenv("LUMA_BASE_URL", "https://api.lumalabs.ai/dream-machine/v1")
         self._use_fal = not self._luma_key and bool(self._fal_key)
         self.capabilities = VideoCapabilities(
             provider_id="luma.dream-machine",
@@ -53,18 +51,14 @@ class LumaAdapter:
         )
 
     def estimate_cost(self, duration_sec: int, resolution: str = "720p") -> float:
-        multiplier = {"540p": 1.0, "720p": 2.0, "1080p": 4.0, "4k": 8.0}.get(
-            resolution, 1.0
-        )
+        multiplier = {"540p": 1.0, "720p": 2.0, "1080p": 4.0, "4k": 8.0}.get(resolution, 1.0)
         base = 0.50 if self._use_fal else self.capabilities.cost_per_second_usd * 5
         per_sec = base / 5 * multiplier
         return duration_sec * per_sec
 
     async def generate(self, req: VideoGenRequest) -> VideoGenResult:
         if not self._luma_key and not self._fal_key:
-            raise RuntimeError(
-                "LUMA_API_KEY or FAL_KEY environment variable not set"
-            )
+            raise RuntimeError("LUMA_API_KEY or FAL_KEY environment variable not set")
 
         if os.getenv("CINEFORGE_MOCK_VIDEO", "false").lower() == "true":
             return self._mock_generate(req)
@@ -123,9 +117,7 @@ class LumaAdapter:
                 provider_id=self.capabilities.provider_id,
             )
 
-    async def _poll_generation(
-        self, client: httpx.AsyncClient, gen_id: str, headers: dict[str, str]
-    ) -> str:
+    async def _poll_generation(self, client: httpx.AsyncClient, gen_id: str, headers: dict[str, str]) -> str:
         for _ in range(120):
             resp = await client.get(
                 f"{self._base_url}/generations/{gen_id}",
@@ -137,9 +129,7 @@ class LumaAdapter:
             if state == "completed":
                 url = data.get("assets", {}).get("video") or data.get("video_url")
                 if not url:
-                    raise RuntimeError(
-                        "No video URL in completed Luma generation"
-                    )
+                    raise RuntimeError("No video URL in completed Luma generation")
                 return str(url)
             if state == "failed":
                 reason = data.get("failure_reason") or data.get("error", "unknown")
@@ -213,13 +203,7 @@ class LumaAdapter:
         data = path.read_bytes()
         b64 = base64.b64encode(data).decode("ascii")
         suffix = path.suffix.lower()
-        mime = (
-            "image/jpeg"
-            if suffix in (".jpg", ".jpeg")
-            else "image/png"
-            if suffix == ".png"
-            else "image/webp"
-        )
+        mime = "image/jpeg" if suffix in (".jpg", ".jpeg") else "image/png" if suffix == ".png" else "image/webp"
         return f"data:{mime};base64,{b64}"
 
     def _save_clip(self, data: bytes) -> Path:

@@ -1,4 +1,5 @@
 """Optional API-key middleware."""
+
 from __future__ import annotations
 
 import os

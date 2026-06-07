@@ -84,7 +84,11 @@ export default function CommandPalette() {
             placeholder="Type a command..."
             value={query()}
             onInput={(e) => { setQuery(e.currentTarget.value); setSelected(0); }}
-            autofocus
+            ref={(el) => { if (el) el.focus(); }}
+            aria-label="Command palette search"
+            role="combobox"
+            aria-expanded={filtered().length > 0}
+            aria-autocomplete="list"
           />
           <div class="border-t border-border max-h-64 overflow-y-auto">
             <For each={filtered()}>
@@ -96,6 +100,9 @@ export default function CommandPalette() {
                   `}
                   onMouseEnter={() => setSelected(index())}
                   onClick={() => { cmd.action(); projectStore.closeCommandPalette(); setQuery(''); setSelected(0); }}
+                  role="option"
+                  aria-selected={index() === selected()}
+                  id={`cmd-${cmd.id}`}
                 >
                   <span>{cmd.label}</span>
                   <span class="text-xs text-muted font-mono">{cmd.shortcut}</span>

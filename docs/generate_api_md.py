@@ -1,4 +1,5 @@
 """Generate API.md from OpenAPI JSON."""
+
 from __future__ import annotations
 
 import json
@@ -36,8 +37,7 @@ def main() -> None:
                 for p in params:
                     req = " **required**" if p.get("required") else ""
                     lines.append(
-                        f"- `{p['name']}` ({p.get('in', 'query')}) — "
-                        f"{p.get('schema', {}).get('type', 'any')}{req}\n"
+                        f"- `{p['name']}` ({p.get('in', 'query')}) — {p.get('schema', {}).get('type', 'any')}{req}\n"
                     )
                 lines.append("\n")
             req_body = details.get("requestBody", {})
@@ -50,9 +50,7 @@ def main() -> None:
             responses = details.get("responses", {})
             if responses:
                 lines.append("### Responses\n")
-                for code, resp in sorted(
-                    responses.items(), key=lambda x: int(x[0]) if x[0].isdigit() else x[0]
-                ):
+                for code, resp in sorted(responses.items(), key=lambda x: int(x[0]) if x[0].isdigit() else x[0]):
                     lines.append(f"- **{code}** — {resp.get('description', '')}\n")
                 lines.append("\n")
 

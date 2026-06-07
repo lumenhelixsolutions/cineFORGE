@@ -1,5 +1,9 @@
 # CineForge
 
+[![CI](https://github.com/lumenhelix/cineforge/actions/workflows/ci.yml/badge.svg)](https://github.com/lumenhelix/cineforge/actions/workflows/ci.yml)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Turn source documents or outlines into long-form cinematic videos. Own every seam: storyboard, style pack, per-shot prompt, transition, narration, and final cut.
 
 ## What it is
@@ -34,6 +38,24 @@ cd .. && cargo tauri dev
 cargo tauri build
 ```
 
+See [docs/QUICKSTART.md](docs/QUICKSTART.md) for the full step-by-step guide, including API usage.
+
+## Testing
+
+```bash
+# Backend unit + integration
+pytest tests/unit tests/integration -q
+
+# Frontend
+npm run test --prefix ui
+
+# Type check
+mypy backend/ --strict --ignore-missing-imports
+
+# Lint
+ruff check backend/ scripts/ docs/
+```
+
 ## Provider matrix (v0.1)
 
 | Provider | Type | Models | Native audio | Frame conditioning | Extend |
@@ -52,6 +74,11 @@ Ships with three named profiles in `routing.yaml`:
 - **hybrid** — local previews, cloud finals (cost-conscious default)
 
 Switch profiles without restarting. The Director re-evaluates bridge strategies against new capabilities automatically.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and architecture principles.  
+Agent contributors should read [AGENTS.md](AGENTS.md) for build steps, test commands, and conventions.
 
 ## License
 

@@ -28,7 +28,11 @@ def check_disk_space(project: Project, required_mb: int = 5120) -> dict[str, Any
     Raises:
         PreflightError: If insufficient disk space.
     """
-    output_dir = Path(project.output_dir) if hasattr(project, "output_dir") else Path.home() / ".cineforge" / "projects" / str(project.id)
+    output_dir = (
+        Path(project.output_dir)
+        if hasattr(project, "output_dir")
+        else Path.home() / ".cineforge" / "projects" / str(project.id)
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
 
     usage = shutil.disk_usage(output_dir)
@@ -37,8 +41,7 @@ def check_disk_space(project: Project, required_mb: int = 5120) -> dict[str, Any
 
     if usage.free < required_bytes:
         raise PreflightError(
-            f"Insufficient disk space: {free_mb:,} MB free, "
-            f"{required_mb:,} MB required for project {project.id}"
+            f"Insufficient disk space: {free_mb:,} MB free, {required_mb:,} MB required for project {project.id}"
         )
 
     return {

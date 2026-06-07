@@ -1,4 +1,5 @@
 """LiteLLM-backed LLM director adapter."""
+
 from __future__ import annotations
 
 import json
@@ -6,9 +7,7 @@ import logging
 import os
 from typing import Any
 
-from backend.adapters.protocols import (
-    LLMDirector, LLMCapabilities, LLMRequest, LLMResponse, LLMUsage
-)
+from backend.adapters.protocols import LLMCapabilities, LLMRequest, LLMResponse, LLMUsage
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +34,7 @@ class LiteLLMDirector:
         if self._client is None:
             try:
                 import litellm
+
                 litellm.set_verbose = False  # type: ignore[attr-defined]
                 self._client = litellm
             except ImportError:

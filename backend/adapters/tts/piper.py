@@ -1,11 +1,11 @@
 """Local Piper TTS adapter."""
+
 from __future__ import annotations
 
 import logging
 import subprocess
 from pathlib import Path
 
-from backend.adapters.protocols import TTSProvider
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +21,13 @@ class PiperTTS:
     async def synthesize(self, text: str, voice: str, out: Path) -> Path:
         cmd = [
             "piper",
-            "--model", self._voice_model,
-            "--output_file", str(out),
+            "--model",
+            self._voice_model,
+            "--output_file",
+            str(out),
         ]
         try:
-            proc = subprocess.run(
+            subprocess.run(
                 cmd,
                 input=text.encode(),
                 capture_output=True,

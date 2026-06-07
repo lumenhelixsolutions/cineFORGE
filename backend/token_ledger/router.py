@@ -1,4 +1,5 @@
 """Routing configuration — resolves providers per tier and profile."""
+
 from __future__ import annotations
 
 import logging

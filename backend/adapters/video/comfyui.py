@@ -1,4 +1,5 @@
 """ComfyUI maximalist local adapter."""
+
 from __future__ import annotations
 
 import json
@@ -11,8 +12,11 @@ from pathlib import Path
 import httpx
 
 from backend.adapters.protocols import (
-    VideoModel, VideoCapabilities, VideoGenRequest, VideoGenResult,
-    ExtendRequest, CapabilityError
+    VideoCapabilities,
+    VideoGenRequest,
+    VideoGenResult,
+    ExtendRequest,
+    CapabilityError,
 )
 
 logger = logging.getLogger(__name__)
@@ -107,8 +111,7 @@ class ComfyUIAdapter:
     def _extract_last_frame(self, clip_path: Path) -> Path:
         out = clip_path.with_suffix(".last_frame.jpg")
         subprocess.run(
-            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip_path),
-             "-vf", "scale=320:-1", "-vframes", "1", str(out)],
+            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip_path), "-vf", "scale=320:-1", "-vframes", "1", str(out)],
             capture_output=True,
             check=True,
         )
@@ -116,10 +119,20 @@ class ComfyUIAdapter:
 
     def _mock_generate(self, req: VideoGenRequest) -> VideoGenResult:
         import tempfile
+
         clip = Path(tempfile.mktemp(suffix=".mp4"))
         subprocess.run(
-            ["ffmpeg", "-y", "-f", "lavfi", "-i", f"testsrc=duration={req.duration_sec}:size=640x360:rate=30",
-             "-pix_fmt", "yuv420p", str(clip)],
+            [
+                "ffmpeg",
+                "-y",
+                "-f",
+                "lavfi",
+                "-i",
+                f"testsrc=duration={req.duration_sec}:size=640x360:rate=30",
+                "-pix_fmt",
+                "yuv420p",
+                str(clip),
+            ],
             capture_output=True,
             check=True,
         )

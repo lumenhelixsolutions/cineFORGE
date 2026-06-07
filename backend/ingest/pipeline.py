@@ -1,4 +1,5 @@
 """Document ingestion: PDF / MD / URL / TXT → normalized markdown SourceDoc."""
+
 from __future__ import annotations
 
 import logging
@@ -27,6 +28,7 @@ async def ingest_document(raw_path: Path, normalized_path: Path, kind: str) -> s
 def _extract_pdf(path: Path) -> str:
     try:
         import fitz  # PyMuPDF
+
         doc = fitz.open(str(path))
         parts = []
         for page in doc:

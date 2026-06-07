@@ -1,4 +1,5 @@
 """Prefab loader — discovers style packs, grammars, and transitions."""
+
 from __future__ import annotations
 
 import logging
@@ -50,12 +51,16 @@ class PrefabLoader:
         return self._style_packs.get(pack_id)
 
     def list_style_packs(self) -> list[dict[str, Any]]:
-        return [{"id": k, "name": v.get("name", k), "description": v.get("description", "")}
-                for k, v in self._style_packs.items()]
+        return [
+            {"id": k, "name": v.get("name", k), "description": v.get("description", "")}
+            for k, v in self._style_packs.items()
+        ]
 
     def list_grammars(self) -> list[dict[str, Any]]:
-        return [{"id": k, "name": v.get("name", k), "description": v.get("description", "")}
-                for k, v in self._grammars.items()]
+        return [
+            {"id": k, "name": v.get("name", k), "description": v.get("description", "")}
+            for k, v in self._grammars.items()
+        ]
 
     def list_transitions(self) -> list[dict[str, Any]]:
         return [{"id": k, "name": v["name"]} for k, v in self._transitions.items()]
@@ -66,6 +71,7 @@ class PrefabLoader:
         if not info:
             return None
         import importlib.util
+
         spec = importlib.util.spec_from_file_location(name, info["path"])
         if spec is None or spec.loader is None:
             return None

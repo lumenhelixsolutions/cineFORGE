@@ -1,7 +1,7 @@
 """Stitcher — assembles clips into master MP4 with transitions."""
+
 from __future__ import annotations
 
-import json
 import logging
 import subprocess
 from pathlib import Path
@@ -93,8 +93,7 @@ class Stitcher:
             "version": "1.1",
             "aspect_ratio": aspect_ratio,
             "duration_sec": sum(
-                float(s.duration_sec) if hasattr(s, "duration_sec") else float(s["duration_sec"])
-                for s in shots
+                float(s.duration_sec) if hasattr(s, "duration_sec") else float(s["duration_sec"]) for s in shots
             ),
             "tracks": [
                 {
@@ -105,7 +104,9 @@ class Stitcher:
                             "start_sec": 0,
                             "duration_sec": s.duration_sec if hasattr(s, "duration_sec") else s["duration_sec"],
                             "path": str(s.clip_path if hasattr(s, "clip_path") else s["clip_path"]),
-                            "bridge": s.bridge_strategy if hasattr(s, "bridge_strategy") else s.get("bridge_strategy", "hard_cut"),
+                            "bridge": s.bridge_strategy
+                            if hasattr(s, "bridge_strategy")
+                            else s.get("bridge_strategy", "hard_cut"),
                             "transition_in": getattr(s, "transition_in", None) or s.get("transition_in", "hard_cut"),
                             "narration": str(self._get_narration_path(s)) if self._get_narration_path(s) else None,
                         }
@@ -126,11 +127,25 @@ class Stitcher:
         out = self._temp_dir / f"norm_{clip.name}"
         w, h = (1920, 1080) if aspect_ratio == "16:9" else (1080, 1920) if aspect_ratio == "9:16" else (1080, 1080)
         subprocess.run(
-            ["ffmpeg", "-y", "-i", str(clip),
-             "-vf", f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:black",
-             "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-             "-c:a", "aac", "-b:a", "192k",
-             str(out)],
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(clip),
+                "-vf",
+                f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2:black",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "fast",
+                "-crf",
+                "23",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "192k",
+                str(out),
+            ],
             capture_output=True,
             check=True,
         )
@@ -144,20 +159,42 @@ class Stitcher:
     def _mix_narration(self, video: Path, narration: Path, output: Path) -> Path:
         """Mix narration audio with video using amix, falling back to simple overlay."""
         try:
-            run_ffmpeg([
-                "-i", video, "-i", narration,
-                "-filter_complex", "[0:a][1:a]amix=inputs=2:duration=first[aout]",
-                "-map", "0:v", "-map", "[aout]",
-                "-c:v", "copy", "-shortest",
-                output,
-            ])
+            run_ffmpeg(
+                [
+                    "-i",
+                    video,
+                    "-i",
+                    narration,
+                    "-filter_complex",
+                    "[0:a][1:a]amix=inputs=2:duration=first[aout]",
+                    "-map",
+                    "0:v",
+                    "-map",
+                    "[aout]",
+                    "-c:v",
+                    "copy",
+                    "-shortest",
+                    output,
+                ]
+            )
         except FFmpegError:
             # Fallback if video has no audio stream
-            run_ffmpeg([
-                "-i", video, "-i", narration,
-                "-c:v", "copy", "-map", "0:v", "-map", "1:a", "-shortest",
-                output,
-            ])
+            run_ffmpeg(
+                [
+                    "-i",
+                    video,
+                    "-i",
+                    narration,
+                    "-c:v",
+                    "copy",
+                    "-map",
+                    "0:v",
+                    "-map",
+                    "1:a",
+                    "-shortest",
+                    output,
+                ]
+            )
         return output
 
     def _load_transition(self, name: str) -> Callable[[Path, Path], Path] | None:
@@ -165,6 +202,7 @@ class Stitcher:
         if not path.exists():
             return None
         import importlib.util
+
         spec = importlib.util.spec_from_file_location(name, path)
         if spec is None or spec.loader is None:
             return None

@@ -19,6 +19,8 @@ jobs:
           pip install -e ".[dev]"
       - name: ruff check
         run: ruff check backend/ scripts/ docs/
+      - name: ruff format check
+        run: ruff format --check backend/ scripts/ docs/
       - name: mypy strict
         run: mypy backend/ --strict --ignore-missing-imports
 

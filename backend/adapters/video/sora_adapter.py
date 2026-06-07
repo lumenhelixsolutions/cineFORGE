@@ -5,6 +5,7 @@ endpoint documented here (`/v1/video/generations`) may still exist for
 enterprise/approved developers, but availability is uncertain and subject to
 change without notice.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -19,7 +20,6 @@ from typing import Any, cast
 import httpx
 
 from backend.adapters.protocols import (
-    VideoModel,
     VideoCapabilities,
     VideoGenRequest,
     VideoGenResult,
@@ -75,9 +75,7 @@ class SoraAdapter:
             try:
                 return await self._generate_sdk(req)
             except Exception as exc:
-                logger.warning(
-                    "OpenAI SDK video generation failed, falling back to httpx: %s", exc
-                )
+                logger.warning("OpenAI SDK video generation failed, falling back to httpx: %s", exc)
 
         return await self._generate_httpx(req)
 
@@ -95,18 +93,14 @@ class SoraAdapter:
         if req.negative_prompt:
             kwargs["negative_prompt"] = req.negative_prompt
 
-        image_path = req.first_frame or (
-            req.reference_images[0] if req.reference_images else None
-        )
+        image_path = req.first_frame or (req.reference_images[0] if req.reference_images else None)
         if image_path is not None:
             kwargs["image"] = self._image_to_data_uri(image_path)
 
         client_any = cast(Any, client)
         generation = await client_any.video.generations.create(**kwargs)
         for _ in range(120):
-            generation = await client_any.video.generations.retrieve(
-                generation.id
-            )
+            generation = await client_any.video.generations.retrieve(generation.id)
             status = getattr(generation, "status", None)
             if status == "completed":
                 break
@@ -152,9 +146,7 @@ class SoraAdapter:
         if req.negative_prompt:
             payload["negative_prompt"] = req.negative_prompt
 
-        image_path = req.first_frame or (
-            req.reference_images[0] if req.reference_images else None
-        )
+        image_path = req.first_frame or (req.reference_images[0] if req.reference_images else None)
         if image_path is not None:
             payload["image"] = self._image_to_data_uri(image_path)
 
@@ -186,9 +178,7 @@ class SoraAdapter:
                 provider_id=self.capabilities.provider_id,
             )
 
-    async def _poll_job(
-        self, client: httpx.AsyncClient, job_id: str, headers: dict[str, str]
-    ) -> str:
+    async def _poll_job(self, client: httpx.AsyncClient, job_id: str, headers: dict[str, str]) -> str:
         for _ in range(120):
             resp = await client.get(
                 f"https://api.openai.com/v1/video/generations/{job_id}",
@@ -203,9 +193,7 @@ class SoraAdapter:
                     raise RuntimeError("No video URL in completed Sora job")
                 return url
             if status in ("failed", "error"):
-                raise RuntimeError(
-                    f"Sora job {job_id} failed: {data.get('failure_reason', 'unknown error')}"
-                )
+                raise RuntimeError(f"Sora job {job_id} failed: {data.get('failure_reason', 'unknown error')}")
             await asyncio.sleep(5)
         raise RuntimeError("Sora job polling timed out")
 
@@ -252,13 +240,7 @@ class SoraAdapter:
         data = path.read_bytes()
         b64 = base64.b64encode(data).decode("ascii")
         suffix = path.suffix.lower()
-        mime = (
-            "image/jpeg"
-            if suffix in (".jpg", ".jpeg")
-            else "image/png"
-            if suffix == ".png"
-            else "image/webp"
-        )
+        mime = "image/jpeg" if suffix in (".jpg", ".jpeg") else "image/png" if suffix == ".png" else "image/webp"
         return f"data:{mime};base64,{b64}"
 
     def _save_clip(self, data: bytes) -> Path:

@@ -1,4 +1,5 @@
 """RenderPipeline — orchestrates VideoModel protocol for shot generation."""
+
 from __future__ import annotations
 
 import logging
@@ -7,7 +8,7 @@ from pathlib import Path
 from typing import Any, cast
 
 from backend.adapters.registry import AdapterRegistry
-from backend.adapters.protocols import VideoGenRequest, VideoModel, CapabilityError, AspectRatio
+from backend.adapters.protocols import VideoGenRequest, AspectRatio
 from backend.token_ledger.router import RoutingConfig
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,7 @@ class RenderPipeline:
             duration_sec=shot.duration_sec if hasattr(shot, "duration_sec") else 6,
             aspect_ratio=aspect,
             resolution=resolution,
-            reference_images=refs[:caps.max_reference_images],
+            reference_images=refs[: caps.max_reference_images],
             first_frame=first_frame,
         )
 
@@ -95,7 +96,9 @@ class RenderPipeline:
         await adapter.synthesize(text=text, voice="en_US-lessac-medium", out=out)
         return out
 
-    async def _generate_reference_images(self, shot: Any, shot_dir: Path, style_pack: dict[str, Any] | None = None) -> Path | None:
+    async def _generate_reference_images(
+        self, shot: Any, shot_dir: Path, style_pack: dict[str, Any] | None = None
+    ) -> Path | None:
         """Generate a reference image for hero/standard shots."""
         tier = getattr(shot, "tier", None) or shot.get("tier", "standard")
         if tier not in {"hero", "standard"}:
@@ -183,10 +186,10 @@ class RenderPipeline:
 
     def _extract_last_frame(self, clip: Path) -> Path:
         import subprocess
+
         out = clip.with_suffix(".last_frame.jpg")
         subprocess.run(
-            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip),
-             "-vf", "scale=320:-1", "-vframes", "1", str(out)],
+            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip), "-vf", "scale=320:-1", "-vframes", "1", str(out)],
             capture_output=True,
             check=True,
         )

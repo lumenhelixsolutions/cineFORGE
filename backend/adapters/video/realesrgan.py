@@ -4,14 +4,20 @@ Upscale rendered clips 2x or 4x. fp16 by default. Tiling support for low VRAM.
 Install: pip install realesrgan
 MIT license.
 """
+
 from __future__ import annotations
 
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any
 
-from backend.adapters.protocols import VideoModel, VideoCapabilities, VideoGenRequest, VideoGenResult, ExtendRequest, CapabilityError
+from backend.adapters.protocols import (
+    VideoCapabilities,
+    VideoGenRequest,
+    VideoGenResult,
+    ExtendRequest,
+    CapabilityError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +55,8 @@ class RealESRGANAdapter:
         try:
             from realesrgan import RealESRGANer
             from basicsr.archs.rrdbnet_arch import RRDBNet
-            model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64,
-                            num_block=23, num_grow_ch=32, scale=self._scale)
+
+            model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=self._scale)
             upsampler = RealESRGANer(
                 scale=self._scale,
                 model_path=None,  # auto-download
@@ -64,8 +70,7 @@ class RealESRGANAdapter:
             temp_dir = Path.home() / ".cineforge" / "cache" / "realesrgan_frames"
             temp_dir.mkdir(parents=True, exist_ok=True)
             subprocess.run(
-                ["ffmpeg", "-y", "-i", str(input_clip),
-                 f"{temp_dir}/frame_%04d.png"],
+                ["ffmpeg", "-y", "-i", str(input_clip), f"{temp_dir}/frame_%04d.png"],
                 capture_output=True,
                 check=True,
             )
@@ -74,9 +79,21 @@ class RealESRGANAdapter:
                 # img is numpy array, save back...
             # Re-encode
             subprocess.run(
-                ["ffmpeg", "-y", "-i", f"{temp_dir}/frame_%04d.png",
-                 "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-                 "-pix_fmt", "yuv420p", str(out)],
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-i",
+                    f"{temp_dir}/frame_%04d.png",
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "fast",
+                    "-crf",
+                    "23",
+                    "-pix_fmt",
+                    "yuv420p",
+                    str(out),
+                ],
                 capture_output=True,
                 check=True,
             )
@@ -85,10 +102,21 @@ class RealESRGANAdapter:
             w = 1280 * self._scale
             h = 720 * self._scale
             subprocess.run(
-                ["ffmpeg", "-y", "-i", str(input_clip),
-                 "-vf", f"scale={w}:{h}:flags=lanczos",
-                 "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-                 str(out)],
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-i",
+                    str(input_clip),
+                    "-vf",
+                    f"scale={w}:{h}:flags=lanczos",
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "fast",
+                    "-crf",
+                    "23",
+                    str(out),
+                ],
                 capture_output=True,
                 check=True,
             )
@@ -107,17 +135,14 @@ class RealESRGANAdapter:
         raise CapabilityError("Real-ESRGAN does not support extend")
 
     async def healthcheck(self) -> bool:
-        try:
-            import realesrgan
-            return True
-        except ImportError:
-            return False
+        import importlib.util
+
+        return importlib.util.find_spec("realesrgan") is not None
 
     def _extract_last_frame(self, clip_path: Path) -> Path:
         out = clip_path.with_suffix(".last_frame.jpg")
         subprocess.run(
-            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip_path),
-             "-vf", "scale=320:-1", "-vframes", "1", str(out)],
+            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip_path), "-vf", "scale=320:-1", "-vframes", "1", str(out)],
             capture_output=True,
             check=True,
         )

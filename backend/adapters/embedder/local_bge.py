@@ -1,11 +1,10 @@
 """Local sentence-transformers embedder (CPU-friendly)."""
+
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import Any
 
-from backend.adapters.protocols import Embedder
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +23,7 @@ class LocalEmbedder:
         if self._model is None:
             try:
                 from sentence_transformers import SentenceTransformer
+
                 self._model = SentenceTransformer(self._model_name)
                 logger.info("Loaded embedder: %s", self._model_name)
             except ImportError:

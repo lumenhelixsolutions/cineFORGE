@@ -3,6 +3,7 @@
 Core code imports ONLY from this module. No concrete provider imports
 outside backend/adapters/*.
 """
+
 from __future__ import annotations
 
 from typing import Any, Protocol, Literal, runtime_checkable
@@ -62,6 +63,7 @@ class ExtendRequest(BaseModel):
 
 class CapabilityError(Exception):
     """Raised when a request exceeds adapter capabilities."""
+
     pass
 
 
@@ -69,18 +71,17 @@ class CapabilityError(Exception):
 class VideoModel(Protocol):
     capabilities: VideoCapabilities
 
-    async def generate(self, req: VideoGenRequest) -> VideoGenResult:
-        ...
+    async def generate(self, req: VideoGenRequest) -> VideoGenResult: ...
 
     async def extend(self, req: ExtendRequest) -> VideoGenResult:
         """Raise CapabilityError if not supported."""
         ...
 
-    async def healthcheck(self) -> bool:
-        ...
+    async def healthcheck(self) -> bool: ...
 
 
 # ─────────── LLM Director ─────────────────────────────────────────
+
 
 class LLMCapabilities(BaseModel):
     provider_id: str
@@ -123,14 +124,13 @@ class LLMResponse(BaseModel):
 class LLMDirector(Protocol):
     capabilities: LLMCapabilities
 
-    async def complete(self, req: LLMRequest) -> LLMResponse:
-        ...
+    async def complete(self, req: LLMRequest) -> LLMResponse: ...
 
-    async def healthcheck(self) -> bool:
-        ...
+    async def healthcheck(self) -> bool: ...
 
 
 # ─────────── Embedder (semantic cache) ────────────────────────────
+
 
 @runtime_checkable
 class Embedder(Protocol):
@@ -138,19 +138,18 @@ class Embedder(Protocol):
     provider_id: str
     is_local: bool
 
-    async def embed(self, texts: list[str]) -> list[list[float]]:
-        ...
+    async def embed(self, texts: list[str]) -> list[list[float]]: ...
 
 
 # ─────────── Optional: TTS, Reference image gen ───────────────────
+
 
 @runtime_checkable
 class TTSProvider(Protocol):
     provider_id: str
     is_local: bool
 
-    async def synthesize(self, text: str, voice: str, out: Path) -> Path:
-        ...
+    async def synthesize(self, text: str, voice: str, out: Path) -> Path: ...
 
 
 @runtime_checkable
@@ -158,5 +157,4 @@ class ReferenceImageGenerator(Protocol):
     provider_id: str
     is_local: bool
 
-    async def generate(self, prompt: str, refs: list[Path] = Field(default_factory=list)) -> Path:
-        ...
+    async def generate(self, prompt: str, refs: list[Path] = Field(default_factory=list)) -> Path: ...

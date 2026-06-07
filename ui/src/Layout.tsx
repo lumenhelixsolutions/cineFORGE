@@ -77,23 +77,28 @@ export default function Layout(props: RouteSectionProps) {
       <div class="flex h-screen w-screen bg-surface text-white overflow-hidden">
         <ProjectTree />
         <div class="flex-1 flex flex-col min-w-0">
-          <div class="flex items-center border-b border-border bg-panel px-4">
+          <div class="flex items-center border-b border-border bg-panel px-4" role="tablist" aria-label="Main tabs">
             {tabs.map((tab) => (
               <button
-                class={`px-4 py-2.5 text-xs font-medium transition-colors border-b-2 ${
+                class={`px-4 py-2.5 text-xs font-medium transition-colors border-b-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:rounded ${
                   currentTab() === tab.id
                     ? 'text-white border-accent'
                     : 'text-muted border-transparent hover:text-white'
                 }`}
                 onClick={() => handleTabClick(tab.id)}
+                role="tab"
+                aria-selected={currentTab() === tab.id}
+                aria-label={tab.label}
               >
                 {tab.label}
               </button>
             ))}
             <div class="flex-1" />
             <button
-              class="text-[10px] text-muted font-mono hover:text-white transition-colors mr-2"
+              class="text-[10px] text-muted font-mono hover:text-white transition-colors mr-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:rounded"
               onClick={() => navigate('/settings')}
+              aria-label="Open settings"
+              title="Settings (⌘,)"
             >
               ⚙ Settings
             </button>

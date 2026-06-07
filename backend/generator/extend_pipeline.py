@@ -1,4 +1,5 @@
 """Extend pipeline — uses VideoModel.extend() for native clip extension."""
+
 from __future__ import annotations
 
 import logging

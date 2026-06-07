@@ -1,4 +1,5 @@
 """Async database layer for CineForge."""
+
 from __future__ import annotations
 
 from typing import AsyncGenerator

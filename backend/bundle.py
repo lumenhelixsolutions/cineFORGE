@@ -4,13 +4,14 @@ A .cineforge bundle is a ZIP containing:
   - manifest.json   (schema version, project metadata, DB rows)
   - media/          (project media files)
 """
+
 from __future__ import annotations
 
 import json
 import shutil
 import uuid
 import zipfile
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -30,9 +31,7 @@ async def export_project_bundle(project_id: str, db: AsyncSession) -> Path:
     if not proj_dir.exists():
         raise FileNotFoundError(f"Project directory not found: {proj_dir}")
 
-    result = await db.execute(
-        select(Project).where(Project.id == project_id)
-    )
+    result = await db.execute(select(Project).where(Project.id == project_id))
     proj = result.scalar_one_or_none()
     if proj is None:
         raise ValueError(f"Project not found: {project_id}")
@@ -99,7 +98,7 @@ async def export_project_bundle(project_id: str, db: AsyncSession) -> Path:
 
     manifest: dict[str, Any] = {
         "schema_version": BUNDLE_SCHEMA_VERSION,
-        "exported_at": datetime.utcnow().isoformat(),
+        "exported_at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
         "project": {
             "id": proj.id,
             "name": proj.name,
@@ -145,9 +144,7 @@ async def import_project_bundle(zip_path: Path, db: AsyncSession) -> Project:
             raise ValueError("Invalid bundle: manifest.json missing")
 
     if manifest_data.get("schema_version") != BUNDLE_SCHEMA_VERSION:
-        raise ValueError(
-            f"Unsupported bundle schema: {manifest_data.get('schema_version')}"
-        )
+        raise ValueError(f"Unsupported bundle schema: {manifest_data.get('schema_version')}")
 
     settings = get_settings()
     pm = manifest_data["project"]
@@ -159,7 +156,7 @@ async def import_project_bundle(zip_path: Path, db: AsyncSession) -> Project:
     with zipfile.ZipFile(zip_path, "r") as zf:
         for item in zf.namelist():
             if item.startswith("media/"):
-                dest = new_proj_dir / item[len("media/"):]
+                dest = new_proj_dir / item[len("media/") :]
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 with zf.open(item) as src, open(dest, "wb") as dst:
                     shutil.copyfileobj(src, dst)
@@ -168,8 +165,8 @@ async def import_project_bundle(zip_path: Path, db: AsyncSession) -> Project:
     proj = Project(
         id=new_id,
         name=pm.get("name", "Imported Project"),
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc).replace(tzinfo=None),
+        updated_at=datetime.now(timezone.utc).replace(tzinfo=None),
         style_pack_id=pm.get("style_pack_id"),
         aspect_ratio=pm.get("aspect_ratio", "16:9"),
         resolution=pm.get("resolution", "1080p"),
@@ -238,7 +235,9 @@ async def import_project_bundle(zip_path: Path, db: AsyncSession) -> Project:
             json=t.get("json", {}),
             llm_model=t.get("llm_model", ""),
             token_usage=t.get("token_usage", {}),
-            created_at=datetime.fromisoformat(t["created_at"]) if t.get("created_at") else datetime.utcnow(),
+            created_at=datetime.fromisoformat(t["created_at"])
+            if t.get("created_at")
+            else datetime.now(timezone.utc).replace(tzinfo=None),
         )
         db.add(treatment)
 
@@ -247,7 +246,9 @@ async def import_project_bundle(zip_path: Path, db: AsyncSession) -> Project:
         job = RenderJob(
             id=str(uuid.uuid4()),
             project_id=new_id,
-            started_at=datetime.fromisoformat(r["started_at"]) if r.get("started_at") else datetime.utcnow(),
+            started_at=datetime.fromisoformat(r["started_at"])
+            if r.get("started_at")
+            else datetime.now(timezone.utc).replace(tzinfo=None),
             finished_at=datetime.fromisoformat(r["finished_at"]) if r.get("finished_at") else None,
             output_path=_rewrite(r.get("output_path")),
             timeline_json=r.get("timeline_json", {}),

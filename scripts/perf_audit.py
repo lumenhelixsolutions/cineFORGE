@@ -9,6 +9,7 @@ Measures:
 
 Outputs JSON report to perf_report.json.
 """
+
 from __future__ import annotations
 
 import json
@@ -23,7 +24,9 @@ from typing import Any
 REPORT_PATH = Path("perf_report.json")
 
 
-def _run(cmd: list[str], cwd: Path | None = None, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+def _run(
+    cmd: list[str], cwd: Path | None = None, env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         cmd,
         cwd=cwd,
@@ -52,6 +55,7 @@ def audit_backend_cold_start() -> dict[str, Any]:
     error = ""
     try:
         import urllib.request
+
         for _ in range(30):
             try:
                 urllib.request.urlopen("http://127.0.0.1:9877/health", timeout=2)
@@ -127,9 +131,24 @@ def audit_mock_render_memory() -> dict[str, Any]:
     pipeline = RenderPipeline(registry=registry, router=router, project_dir=proj_dir)
 
     # Create mock project and shots
-    project = Project(id="perf-proj", name="Perf", aspect_ratio="16:9", resolution="1080p", routing_profile="hybrid", preview_mode=True)
+    project = Project(
+        id="perf-proj",
+        name="Perf",
+        aspect_ratio="16:9",
+        resolution="1080p",
+        routing_profile="hybrid",
+        preview_mode=True,
+    )
     shots = [
-        Shot(id=f"s{i}", project_id="perf-proj", order_index=i, duration_sec=6, tier="standard", prompt_text="test", status="draft")
+        Shot(
+            id=f"s{i}",
+            project_id="perf-proj",
+            order_index=i,
+            duration_sec=6,
+            tier="standard",
+            prompt_text="test",
+            status="draft",
+        )
         for i in range(5)
     ]
 
@@ -137,12 +156,14 @@ def audit_mock_render_memory() -> dict[str, Any]:
     start = time.perf_counter()
     try:
         import asyncio
+
         async def _run_all() -> None:
             for shot in shots:
                 try:
                     await pipeline.render_shot(shot=shot, project=project)
                 except Exception:
                     pass  # mock adapters may still fail; we only care about memory
+
         asyncio.get_event_loop().run_until_complete(_run_all())
     except Exception as exc:
         return {"metric": "mock_render_memory_mb", "value": None, "ok": False, "error": str(exc)}

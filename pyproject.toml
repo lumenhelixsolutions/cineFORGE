@@ -96,3 +96,12 @@ addopts = "--basetemp=.pytest_tmp"
 markers = [
     "e2e: End-to-end tests requiring a browser",
 ]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+exclude = ["ui/", "src-tauri/", ".pytest_tmp/", ".venv/", "venv/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]

@@ -1,13 +1,12 @@
 """Entry-point discovery and lazy adapter instantiation."""
+
 from __future__ import annotations
 
 import logging
 from importlib.metadata import entry_points
 from typing import Any, TypeVar, Generic
 
-from backend.adapters.protocols import (
-    VideoModel, LLMDirector, Embedder, TTSProvider, ReferenceImageGenerator
-)
+from backend.adapters.protocols import VideoModel, LLMDirector, Embedder, TTSProvider, ReferenceImageGenerator
 from backend.telemetry import log_adapter_use
 
 logger = logging.getLogger(__name__)
@@ -146,7 +145,11 @@ class AdapterRegistry:
                 caps["llm"][k] = {"error": str(exc)}
         for k, v_embed in self._embedder.items():
             try:
-                caps["embedder"][k] = {"dim": v_embed.get().dim, "provider_id": v_embed.get().provider_id, "is_local": v_embed.get().is_local}
+                caps["embedder"][k] = {
+                    "dim": v_embed.get().dim,
+                    "provider_id": v_embed.get().provider_id,
+                    "is_local": v_embed.get().is_local,
+                }
             except Exception as exc:
                 caps["embedder"][k] = {"error": str(exc)}
         return caps

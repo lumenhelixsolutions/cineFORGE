@@ -1,4 +1,5 @@
 """Fal.ai FLUX reference image generator adapter."""
+
 from __future__ import annotations
 
 import logging
@@ -7,7 +8,6 @@ from pathlib import Path
 
 import httpx
 
-from backend.adapters.protocols import ReferenceImageGenerator
 
 logger = logging.getLogger(__name__)
 

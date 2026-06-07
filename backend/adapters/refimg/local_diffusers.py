@@ -2,13 +2,13 @@
 
 Zero API keys. Runs on CPU (slow) or CUDA (fast). Uses diffusers + torch.
 """
+
 from __future__ import annotations
 
 import logging
 from pathlib import Path
 from typing import Any
 
-from backend.adapters.protocols import ReferenceImageGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,7 @@ class LocalDiffusersAdapter:
         try:
             import torch
             from diffusers import StableDiffusionXLPipeline, DiffusionPipeline
+
             logger.info("Loading local diffusers model: %s", self._model_id)
             self._device = "cuda" if torch.cuda.is_available() else "cpu"
             if "xl" in self._model_id.lower():
@@ -60,6 +61,7 @@ class LocalDiffusersAdapter:
     async def generate(self, prompt: str, refs: list[Path] = []) -> Path:
         pipe = self._load()
         import torch
+
         generator = torch.Generator(self._device).manual_seed(42)
         image = pipe(
             prompt=prompt,

@@ -6,14 +6,20 @@ Install: pip install vsrife
 This is a post-processing adapter, not a primary VideoModel.
 It consumes rendered clips and outputs higher-FPS versions.
 """
+
 from __future__ import annotations
 
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any
 
-from backend.adapters.protocols import VideoModel, VideoCapabilities, VideoGenRequest, VideoGenResult, ExtendRequest, CapabilityError
+from backend.adapters.protocols import (
+    VideoCapabilities,
+    VideoGenRequest,
+    VideoGenResult,
+    ExtendRequest,
+    CapabilityError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,15 +55,27 @@ class RIFEAdapter:
         out = input_clip.with_suffix(f".rife{self._factor}x.mp4")
         try:
             from vsrife import rife
+
             rife(str(input_clip), output=str(out), factor=self._factor)
         except ImportError:
             # Fallback to ffmpeg minterpolate if vsrife not installed
             logger.warning("vsrife not installed, falling back to ffmpeg minterpolate")
             subprocess.run(
-                ["ffmpeg", "-y", "-i", str(input_clip),
-                 "-vf", f"minterpolate='mi_mode=mci:mc_mode=aobmc:me_mode=bidir:fps={30 * self._factor}'",
-                 "-c:v", "libx264", "-preset", "fast", "-crf", "23",
-                 str(out)],
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-i",
+                    str(input_clip),
+                    "-vf",
+                    f"minterpolate='mi_mode=mci:mc_mode=aobmc:me_mode=bidir:fps={30 * self._factor}'",
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "fast",
+                    "-crf",
+                    "23",
+                    str(out),
+                ],
                 capture_output=True,
                 check=True,
             )
@@ -76,17 +94,14 @@ class RIFEAdapter:
         raise CapabilityError("RIFE does not support extend")
 
     async def healthcheck(self) -> bool:
-        try:
-            import vsrife
-            return True
-        except ImportError:
-            return False
+        import importlib.util
+
+        return importlib.util.find_spec("vsrife") is not None
 
     def _extract_last_frame(self, clip_path: Path) -> Path:
         out = clip_path.with_suffix(".last_frame.jpg")
         subprocess.run(
-            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip_path),
-             "-vf", "scale=320:-1", "-vframes", "1", str(out)],
+            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip_path), "-vf", "scale=320:-1", "-vframes", "1", str(out)],
             capture_output=True,
             check=True,
         )

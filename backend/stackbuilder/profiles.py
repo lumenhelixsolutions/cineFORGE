@@ -3,21 +3,22 @@
 Each profile declares its position on key axes so the StackBuilder can
 score and rank options against project constraints.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Literal
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
 class ProfileTradeoffs:
     """Quantified tradeoff positions for a routing profile."""
-    quality_score: float          # 0.0–1.0, estimated output fidelity
-    speed_score: float            # 0.0–1.0, generation throughput
-    cost_score: float             # 0.0–1.0, $ per minute of output (inverse: higher = cheaper)
-    depth_score: float            # 0.0–1.0, narrative complexity / research integration
-    local_dependency: float       # 0.0–1.0, fraction of pipeline requiring local GPU
-    vram_required_gb: int         # Minimum GPU VRAM, 0 = none needed
+
+    quality_score: float  # 0.0–1.0, estimated output fidelity
+    speed_score: float  # 0.0–1.0, generation throughput
+    cost_score: float  # 0.0–1.0, $ per minute of output (inverse: higher = cheaper)
+    depth_score: float  # 0.0–1.0, narrative complexity / research integration
+    local_dependency: float  # 0.0–1.0, fraction of pipeline requiring local GPU
+    vram_required_gb: int  # Minimum GPU VRAM, 0 = none needed
     max_recommended_duration_min: int
     primary_use_case: str
     description: str
@@ -36,7 +37,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="Premium documentary, cinematic archival, client delivery",
         description="Best quality, fastest turnaround, highest cost. Veo 3.1 + Claude. No GPU needed.",
     ),
-
     # ── Original hybrid ─────────────────────────────────────
     "hybrid": ProfileTradeoffs(
         quality_score=0.80,
@@ -49,7 +49,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="General documentary, explainer, cost-conscious production",
         description="Local previews (free iteration) → cloud finals (quality). Balanced cost/speed.",
     ),
-
     # ── Research-based hybrids ──────────────────────────────
     "framepack_hybrid": ProfileTradeoffs(
         quality_score=0.75,
@@ -62,7 +61,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="Long-form documentary, deep investigative pieces, narrative arcs",
         description="FramePack F1 for 60s+ continuous shots. Cloud LLM + local video + post-process.",
     ),
-
     "cogvideo_hybrid": ProfileTradeoffs(
         quality_score=0.55,
         speed_score=0.50,
@@ -74,7 +72,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="Short-form social, micro-documentary, laptop production",
         description="CogVideoX on 4GB VRAM. 6s micro-shots assembled into short videos.",
     ),
-
     "budget_local": ProfileTradeoffs(
         quality_score=0.60,
         speed_score=0.20,
@@ -86,7 +83,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="Zero-budget documentary, open-source education, privacy-critical work",
         description="100% free. Ollama + FramePack/CogVideoX + RIFE + Real-ESRGAN. No API keys.",
     ),
-
     # ── Documentary-focused new profiles ────────────────────
     "documentary_fast": ProfileTradeoffs(
         quality_score=0.65,
@@ -99,7 +95,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="News reports, breaking documentary, rapid turnaround",
         description="Fastest documentary pipeline. Cloud LLM + CogVideoX + minimal post-process. Under 10 min total.",
     ),
-
     "documentary_deep": ProfileTradeoffs(
         quality_score=0.80,
         speed_score=0.30,
@@ -111,7 +106,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="Investigative journalism, long-form documentary, research synthesis",
         description="FramePack for extended scenes + cloud LLM for deep treatment + archival style packs. 3-act with 15+ beats.",
     ),
-
     "explainer_budget": ProfileTradeoffs(
         quality_score=0.50,
         speed_score=0.40,
@@ -123,7 +117,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="Educational content, tutorials, whiteboard explainers, non-profit",
         description="Zero-cost educational pipeline. Ollama + CogVideoX + whiteboard style + Piper narration.",
     ),
-
     "archival_premium": ProfileTradeoffs(
         quality_score=0.90,
         speed_score=0.60,
@@ -135,7 +128,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="Historical documentary, museum exhibits, premium archival",
         description="Maximum fidelity for archival work. Veo 3.1 + Claude + archival_sepia style + Real-ESRGAN upscale.",
     ),
-
     "research_walkthrough": ProfileTradeoffs(
         quality_score=0.70,
         speed_score=0.55,
@@ -147,7 +139,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="Academic papers, data visualization walkthrough, science communication",
         description="Equation reveals, diagram shots, derivation sequences. Whiteboard style + cloud LLM + FramePack for complex visuals.",
     ),
-
     "news_breaking": ProfileTradeoffs(
         quality_score=0.50,
         speed_score=0.95,
@@ -159,7 +150,6 @@ PROFILE_TRADEOFFS: dict[str, ProfileTradeoffs] = {
         primary_use_case="Breaking news, social media clips, rapid response",
         description="Fastest possible. Cloud LLM + Veo Fast + no post-process. 2-minute turnaround for 60s video.",
     ),
-
     "hybrid_balanced": ProfileTradeoffs(
         quality_score=0.75,
         speed_score=0.65,

@@ -6,18 +6,21 @@ so generation cost is fixed per frame regardless of video length.
 
 Source: https://github.com/lllyasviel/FramePack
 """
+
 from __future__ import annotations
 
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any
 
 import httpx
 
 from backend.adapters.protocols import (
-    VideoModel, VideoCapabilities, VideoGenRequest, VideoGenResult,
-    ExtendRequest, CapabilityError
+    VideoCapabilities,
+    VideoGenRequest,
+    VideoGenResult,
+    ExtendRequest,
+    CapabilityError,
 )
 
 logger = logging.getLogger(__name__)
@@ -99,8 +102,7 @@ class FramePackAdapter:
     def _extract_last_frame(self, clip_path: Path) -> Path:
         out = clip_path.with_suffix(".last_frame.jpg")
         subprocess.run(
-            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip_path),
-             "-vf", "scale=320:-1", "-vframes", "1", str(out)],
+            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip_path), "-vf", "scale=320:-1", "-vframes", "1", str(out)],
             capture_output=True,
             check=True,
         )

@@ -2,6 +2,7 @@
 
 Checks every critical component and reports actionable fixes.
 """
+
 from __future__ import annotations
 
 import logging
@@ -59,6 +60,7 @@ class DiagnosticsEngine:
         """Verify the backend process is responding."""
         try:
             import urllib.request
+
             with urllib.request.urlopen("http://127.0.0.1:8765/health", timeout=2) as resp:
                 data = resp.read()
                 if b"ok" in data:
@@ -66,46 +68,42 @@ class DiagnosticsEngine:
                 return DiagnosticResult("Backend Health", "warning", "Backend responded but status unclear")
         except Exception as exc:
             return DiagnosticResult(
-                "Backend Health", "error",
-                f"Backend not reachable: {exc}",
-                "Run: python -m backend.app"
+                "Backend Health", "error", f"Backend not reachable: {exc}", "Run: python -m backend.app"
             )
 
     def _check_cors(self) -> DiagnosticResult:
         """Verify CORS headers are present on responses."""
         try:
             import urllib.request
+
             req = urllib.request.Request(
-                "http://127.0.0.1:8765/health",
-                headers={"Origin": "http://localhost:5173"},
-                method="GET"
+                "http://127.0.0.1:8765/health", headers={"Origin": "http://localhost:5173"}, method="GET"
             )
             with urllib.request.urlopen(req, timeout=2) as resp:
                 cors = resp.headers.get("Access-Control-Allow-Origin", "")
                 if cors == "*" or "localhost:5173" in cors:
                     return DiagnosticResult("CORS", "ok", f"CORS enabled: {cors}")
                 return DiagnosticResult(
-                    "CORS", "warning",
+                    "CORS",
+                    "warning",
                     f"CORS header missing or incorrect: '{cors}'",
-                    "Restart backend after code changes"
+                    "Restart backend after code changes",
                 )
         except Exception as exc:
-            return DiagnosticResult(
-                "CORS", "error",
-                f"Cannot test CORS: {exc}",
-                "Ensure backend is running"
-            )
+            return DiagnosticResult("CORS", "error", f"Cannot test CORS: {exc}", "Ensure backend is running")
 
     def _check_python_version(self) -> DiagnosticResult:
         """Check Python is 3.12+."""
         import sys
+
         version = sys.version_info
         if version.major == 3 and version.minor >= 12:
             return DiagnosticResult("Python Version", "ok", f"Python {version.major}.{version.minor}.{version.micro}")
         return DiagnosticResult(
-            "Python Version", "error",
+            "Python Version",
+            "error",
             f"Python {version.major}.{version.minor} found, 3.12+ required",
-            "Install Python 3.12 from python.org"
+            "Install Python 3.12 from python.org",
         )
 
     def _check_ffmpeg(self) -> DiagnosticResult:
@@ -118,9 +116,10 @@ class DiagnosticsEngine:
             return DiagnosticResult("FFmpeg", "error", "ffmpeg returned non-zero", "Install FFmpeg and add to PATH")
         except FileNotFoundError:
             return DiagnosticResult(
-                "FFmpeg", "error",
+                "FFmpeg",
+                "error",
                 "ffmpeg not found in PATH",
-                "Install: winget install Gyan.FFmpeg  (or brew install ffmpeg on macOS)"
+                "Install: winget install Gyan.FFmpeg  (or brew install ffmpeg on macOS)",
             )
         except Exception as exc:
             return DiagnosticResult("FFmpeg", "error", str(exc), "Check FFmpeg installation")
@@ -137,19 +136,20 @@ class DiagnosticsEngine:
                 total = video + llm + embedder
                 if total >= 3:
                     return DiagnosticResult(
-                        "Adapters", "ok",
-                        f"{video} video, {llm} LLM, {embedder} embedder adapters loaded"
+                        "Adapters", "ok", f"{video} video, {llm} LLM, {embedder} embedder adapters loaded"
                     )
                 return DiagnosticResult(
-                    "Adapters", "warning",
+                    "Adapters",
+                    "warning",
                     f"Only {total} adapters loaded ({video} video, {llm} LLM, {embedder} embedder)",
-                    "Run: pip install -e ."
+                    "Run: pip install -e .",
                 )
         except Exception as exc:
             return DiagnosticResult(
-                "Adapters", "error",
+                "Adapters",
+                "error",
                 f"Cannot query adapters: {exc}",
-                "Ensure backend is running and entry points are correct"
+                "Ensure backend is running and entry points are correct",
             )
 
     def _check_env_file(self) -> DiagnosticResult:
@@ -157,9 +157,7 @@ class DiagnosticsEngine:
         env_path = Path(".env")
         if not env_path.exists():
             return DiagnosticResult(
-                "Environment Config", "warning",
-                "No .env file found",
-                "Copy .env.example to .env and add your API keys"
+                "Environment Config", "warning", "No .env file found", "Copy .env.example to .env and add your API keys"
             )
         content = env_path.read_text()
         has_anthropic = "ANTHROPIC_API_KEY" in content and "your-" not in content
@@ -170,29 +168,30 @@ class DiagnosticsEngine:
         if has_anthropic or has_google:
             return DiagnosticResult("Environment Config", "ok", "API keys configured")
         return DiagnosticResult(
-            "Environment Config", "warning",
+            "Environment Config",
+            "warning",
             ".env exists but no valid API keys found",
-            "Add ANTHROPIC_API_KEY or GOOGLE_CLOUD_PROJECT, or enable mock mode"
+            "Add ANTHROPIC_API_KEY or GOOGLE_CLOUD_PROJECT, or enable mock mode",
         )
 
     def _check_gpu(self) -> DiagnosticResult:
         """Check for CUDA GPU availability."""
         try:
             import torch
+
             if torch.cuda.is_available():
                 name = torch.cuda.get_device_name(0)
                 mem = torch.cuda.get_device_properties(0).total_memory / 1024**3
                 return DiagnosticResult("GPU", "ok", f"{name} ({mem:.1f} GB VRAM)")
             return DiagnosticResult(
-                "GPU", "warning",
+                "GPU",
+                "warning",
                 "No CUDA GPU detected. CPU-only mode for LLM, video generation requires GPU.",
-                "Install NVIDIA drivers and CUDA toolkit, or use cloud profiles"
+                "Install NVIDIA drivers and CUDA toolkit, or use cloud profiles",
             )
         except ImportError:
             return DiagnosticResult(
-                "GPU", "warning",
-                "PyTorch not installed — cannot detect GPU",
-                "Run: pip install torch"
+                "GPU", "warning", "PyTorch not installed — cannot detect GPU", "Run: pip install torch"
             )
         except Exception as exc:
             return DiagnosticResult("GPU", "warning", str(exc), "Check NVIDIA driver installation")
@@ -207,15 +206,17 @@ class DiagnosticsEngine:
             return DiagnosticResult("Data Directory", "ok", f"{self.data_dir} is writable")
         except Exception as exc:
             return DiagnosticResult(
-                "Data Directory", "error",
+                "Data Directory",
+                "error",
                 f"Cannot write to {self.data_dir}: {exc}",
-                "Check permissions or set CINEFORGE_DATA_DIR to a writable path"
+                "Check permissions or set CINEFORGE_DATA_DIR to a writable path",
             )
 
     def _check_database(self) -> DiagnosticResult:
         """Check SQLite database is accessible."""
         try:
             from sqlalchemy import create_engine, text
+
             db_url = os.getenv("CINEFORGE_DATABASE_URL", f"sqlite:///{self.data_dir / 'cineforge.db'}")
             engine = create_engine(db_url.replace("+aiosqlite", ""))
             with engine.connect() as conn:
@@ -223,9 +224,7 @@ class DiagnosticsEngine:
             return DiagnosticResult("Database", "ok", "SQLite database accessible")
         except Exception as exc:
             return DiagnosticResult(
-                "Database", "error",
-                f"Database error: {exc}",
-                "Delete cineforge.db and restart to recreate"
+                "Database", "error", f"Database error: {exc}", "Delete cineforge.db and restart to recreate"
             )
 
     def _check_frontend_deps(self) -> DiagnosticResult:
@@ -234,8 +233,4 @@ class DiagnosticsEngine:
         node_modules = ui_dir / "node_modules"
         if node_modules.exists():
             return DiagnosticResult("Frontend Dependencies", "ok", "node_modules present")
-        return DiagnosticResult(
-            "Frontend Dependencies", "error",
-            "node_modules not found",
-            "Run: cd ui && npm install"
-        )
+        return DiagnosticResult("Frontend Dependencies", "error", "node_modules not found", "Run: cd ui && npm install")

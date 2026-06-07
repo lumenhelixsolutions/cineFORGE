@@ -24,17 +24,21 @@ export default function ProjectTree() {
     <div class="flex flex-col h-full w-64 border-r border-border bg-panel">
       <div class="p-4 border-b border-border flex items-center justify-between">
         <h2 class="text-sm font-semibold uppercase tracking-wider text-muted">Projects</h2>
-        <button onClick={handleCreate} class="btn-primary text-xs px-2 py-1">New</button>
+        <button onClick={handleCreate} class="btn-primary text-xs px-2 py-1" aria-label="Create new project" title="New project (N)">New</button>
       </div>
       <div class="flex-1 overflow-y-auto p-2 space-y-1">
         <For each={projectStore.state.projects}>
           {(project) => (
             <div
               class={`
-                px-3 py-2 rounded-md cursor-pointer text-sm transition-colors
+                px-3 py-2 rounded-md cursor-pointer text-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent
                 ${projectStore.state.activeProject?.id === project.id ? 'bg-accent/20 border border-accent/40' : 'hover:bg-surface'}
               `}
               onClick={() => handleSelect(project.id)}
+              role="button"
+              tabindex="0"
+              aria-label={`Open project ${project.name}`}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleSelect(project.id); } }}
             >
               <div class="font-medium truncate">{project.name}</div>
               <div class="text-xs text-muted mt-0.5">

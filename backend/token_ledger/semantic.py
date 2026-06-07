@@ -1,4 +1,5 @@
 """Semantic cache using txtai (SQLite mode) or local embeddings."""
+
 from __future__ import annotations
 
 import hashlib
@@ -23,6 +24,7 @@ class SemanticCache:
 
     def _load(self) -> None:
         import json
+
         if self._index_path.exists():
             try:
                 self._entries = json.loads(self._index_path.read_text(encoding="utf-8"))
@@ -31,6 +33,7 @@ class SemanticCache:
 
     def _save(self) -> None:
         import json
+
         self._index_path.write_text(json.dumps(self._entries, indent=2), encoding="utf-8")
 
     def _cosine(self, a: list[float], b: list[float]) -> float:

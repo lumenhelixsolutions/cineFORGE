@@ -95,8 +95,8 @@ class TestTreatment:
         assert 10 <= total <= 40
 
 
-@pytest.mark.asyncio
 class TestStoryboard:
+    @pytest.mark.asyncio
     async def test_generate_storyboard(self):
         llm = FakeLLM()
         # Override to return shots

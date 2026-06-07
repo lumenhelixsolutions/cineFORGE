@@ -1,16 +1,16 @@
 """FastAPI entry point for CineForge backend."""
+
 from __future__ import annotations
 
 import contextvars
 import json
 import logging
-import os
 import shutil
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, AsyncGenerator, Awaitable, Callable, cast
+from typing import Any, AsyncGenerator, Awaitable, Callable
 
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from backend.settings import get_settings
-from backend.models.project import init_db, Project, Shot, SourceDoc, Treatment, RenderJob, StylePack
+from backend.models.project import init_db, Project, Shot, SourceDoc, Treatment, RenderJob
 from backend.adapters.registry import get_registry
 from backend.adapters.protocols import CapabilityError
 from backend.ingest.pipeline import ingest_document
@@ -90,6 +90,7 @@ routing_config = RoutingConfig.from_file(settings.data_dir / "routing.yaml")
 
 class AppContext:
     """Single in-memory application context."""
+
     def __init__(self) -> None:
         self.registry = get_registry()
         self.prefabs = prefab_loader
@@ -149,9 +150,14 @@ async def correlation_id_middleware(
 # Health & capabilities
 # ═══════════════════════════════════════════════════════════════
 
+
 @app.get("/health")
 async def health() -> dict[str, Any]:
-    return {"status": "ok", "version": "0.1.0", "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat()}
+    return {
+        "status": "ok",
+        "version": "0.1.0",
+        "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
+    }
 
 
 @app.get("/capabilities")
@@ -168,6 +174,7 @@ async def reload_capabilities() -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════
 # Projects
 # ═══════════════════════════════════════════════════════════════
+
 
 class CreateProjectRequest(BaseModel):
     name: str
@@ -212,9 +219,7 @@ async def create_project(
 
 @app.get("/projects")
 async def list_projects(db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
-    result = await db.execute(
-        select(Project).options(selectinload(Project.shots)).order_by(Project.created_at.desc())
-    )
+    result = await db.execute(select(Project).options(selectinload(Project.shots)).order_by(Project.created_at.desc()))
     projects = result.scalars().all()
     return [
         {
@@ -297,8 +302,16 @@ async def update_project(
     proj = result.scalar_one_or_none()
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found")
-    for key in ("name", "aspect_ratio", "resolution", "target_duration_sec",
-                "style_pack_id", "routing_profile", "preview_mode", "budget_usd"):
+    for key in (
+        "name",
+        "aspect_ratio",
+        "resolution",
+        "target_duration_sec",
+        "style_pack_id",
+        "routing_profile",
+        "preview_mode",
+        "budget_usd",
+    ):
         if key in body:
             setattr(proj, key, body[key])
     proj.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -310,6 +323,7 @@ async def update_project(
 # ═══════════════════════════════════════════════════════════════
 # Sources / Ingest
 # ═══════════════════════════════════════════════════════════════
+
 
 @app.post("/projects/{project_id}/sources")
 async def upload_source(
@@ -327,9 +341,15 @@ async def upload_source(
     with open(raw_path, "wb") as f:
         shutil.copyfileobj(file.file, f)
 
-    kind = "pdf" if file.filename and file.filename.endswith(".pdf") else \
-           "md" if file.filename and file.filename.endswith(".md") else \
-           "txt" if file.filename and file.filename.endswith(".txt") else "url"
+    kind = (
+        "pdf"
+        if file.filename and file.filename.endswith(".pdf")
+        else "md"
+        if file.filename and file.filename.endswith(".md")
+        else "txt"
+        if file.filename and file.filename.endswith(".txt")
+        else "url"
+    )
 
     normalized_path = proj_dir / f"{raw_path.stem}.md"
     try:
@@ -355,6 +375,7 @@ async def upload_source(
 # Director — Treatment & Storyboard
 # ═══════════════════════════════════════════════════════════════
 
+
 class GenerateTreatmentRequest(BaseModel):
     llm_provider: str | None = None
     style_pack_id: str | None = None
@@ -367,16 +388,12 @@ async def create_treatment(
     req: GenerateTreatmentRequest,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    result = await db.execute(
-        select(Project).where(Project.id == project_id).options(selectinload(Project.sources))
-    )
+    result = await db.execute(select(Project).where(Project.id == project_id).options(selectinload(Project.sources)))
     proj = result.scalar_one_or_none()
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    source_text = "\n\n".join(
-        s.extracted_text or "" for s in proj.sources
-    )
+    source_text = "\n\n".join(s.extracted_text or "" for s in proj.sources)
     if not source_text.strip():
         raise HTTPException(status_code=400, detail="No source text available")
 
@@ -433,9 +450,7 @@ async def create_storyboard(
         treatment = t_result.scalar_one_or_none()
     if not treatment:
         t_result = await db.execute(
-            select(Treatment)
-            .where(Treatment.project_id == project_id)
-            .order_by(Treatment.created_at.desc())
+            select(Treatment).where(Treatment.project_id == project_id).order_by(Treatment.created_at.desc())
         )
         treatment = t_result.scalar_one_or_none()
     if not treatment:
@@ -494,6 +509,7 @@ async def create_storyboard(
 # PromptForge
 # ═══════════════════════════════════════════════════════════════
 
+
 class ForgePromptRequest(BaseModel):
     shot_id: str
     continuity_yaml: str | None = None
@@ -505,9 +521,7 @@ async def forge_prompt(
     req: ForgePromptRequest,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    result = await db.execute(
-        select(Shot).where(Shot.id == req.shot_id, Shot.project_id == project_id)
-    )
+    result = await db.execute(select(Shot).where(Shot.id == req.shot_id, Shot.project_id == project_id))
     shot = result.scalar_one_or_none()
     if not shot:
         raise HTTPException(status_code=404, detail="Shot not found")
@@ -541,6 +555,7 @@ async def forge_prompt(
 # Render
 # ═══════════════════════════════════════════════════════════════
 
+
 class RenderShotRequest(BaseModel):
     shot_ids: list[str] | None = None  # None = render all draft shots
 
@@ -552,9 +567,7 @@ async def render_project(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    result = await db.execute(
-        select(Project).where(Project.id == project_id).options(selectinload(Project.shots))
-    )
+    result = await db.execute(select(Project).where(Project.id == project_id).options(selectinload(Project.shots)))
     proj = result.scalar_one_or_none()
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -645,6 +658,7 @@ async def _run_render(
 # Stitch
 # ═══════════════════════════════════════════════════════════════
 
+
 class StitchRequest(BaseModel):
     output_name: str = "master"
 
@@ -655,9 +669,7 @@ async def stitch_project(
     req: StitchRequest,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    result = await db.execute(
-        select(Project).where(Project.id == project_id).options(selectinload(Project.shots))
-    )
+    result = await db.execute(select(Project).where(Project.id == project_id).options(selectinload(Project.shots)))
     proj = result.scalar_one_or_none()
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -692,6 +704,7 @@ async def stitch_project(
 # Narration
 # ═══════════════════════════════════════════════════════════════
 
+
 class NarrationRequest(BaseModel):
     shot_ids: list[str] | None = None
 
@@ -702,9 +715,7 @@ async def generate_narration(
     req: NarrationRequest,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    result = await db.execute(
-        select(Project).where(Project.id == project_id).options(selectinload(Project.shots))
-    )
+    result = await db.execute(select(Project).where(Project.id == project_id).options(selectinload(Project.shots)))
     proj = result.scalar_one_or_none()
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -733,6 +744,7 @@ async def generate_narration(
 # Reference Images
 # ═══════════════════════════════════════════════════════════════
 
+
 class RefImagesRequest(BaseModel):
     shot_ids: list[str] | None = None
 
@@ -743,9 +755,7 @@ async def generate_ref_images(
     req: RefImagesRequest,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    result = await db.execute(
-        select(Project).where(Project.id == project_id).options(selectinload(Project.shots))
-    )
+    result = await db.execute(select(Project).where(Project.id == project_id).options(selectinload(Project.shots)))
     proj = result.scalar_one_or_none()
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -780,6 +790,7 @@ async def generate_ref_images(
 # Extend
 # ═══════════════════════════════════════════════════════════════
 
+
 class ExtendShotRequest(BaseModel):
     shot_id: str
     extra_seconds: int = 7
@@ -791,9 +802,7 @@ async def extend_shot(
     req: ExtendShotRequest,
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    result = await db.execute(
-        select(Shot).where(Shot.id == req.shot_id, Shot.project_id == project_id)
-    )
+    result = await db.execute(select(Shot).where(Shot.id == req.shot_id, Shot.project_id == project_id))
     shot = result.scalar_one_or_none()
     if not shot:
         raise HTTPException(status_code=404, detail="Shot not found")
@@ -805,9 +814,7 @@ async def extend_shot(
     if not proj:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    provider_id = shot.provider_id or app_ctx.router.resolve_video(
-        shot.tier, proj.routing_profile, proj.preview_mode
-    )
+    provider_id = shot.provider_id or app_ctx.router.resolve_video(shot.tier, proj.routing_profile, proj.preview_mode)
     adapter = app_ctx.registry.video_adapter(provider_id)
     ext = ExtendPipeline(adapter)
 
@@ -838,6 +845,7 @@ async def extend_shot(
 # Routing
 # ═══════════════════════════════════════════════════════════════
 
+
 @app.get("/routing")
 async def get_routing() -> dict[str, Any]:
     cfg = app_ctx.router.config.copy()
@@ -846,12 +854,10 @@ async def get_routing() -> dict[str, Any]:
         if name in cfg.get("profiles", {}):
             cfg["profiles"][name]["_description"] = profile.get("description", "")
             cfg["profiles"][name]["_video_providers"] = {
-                k: v for k, v in profile.get("video", {}).items()
-                if not k.startswith("post_")
+                k: v for k, v in profile.get("video", {}).items() if not k.startswith("post_")
             }
             cfg["profiles"][name]["_post_process"] = {
-                k: v for k, v in profile.get("video", {}).items()
-                if k.startswith("post_")
+                k: v for k, v in profile.get("video", {}).items() if k.startswith("post_")
             }
     return cfg
 
@@ -872,6 +878,7 @@ async def list_profiles() -> list[str]:
 # Prefabs
 # ═══════════════════════════════════════════════════════════════
 
+
 @app.get("/prefabs/style-packs")
 async def list_style_packs() -> list[dict[str, Any]]:
     return app_ctx.prefabs.list_style_packs()
@@ -890,6 +897,7 @@ async def list_transitions() -> list[dict[str, Any]]:
 # ═══════════════════════════════════════════════════════════════
 # StackBuilder — intelligent profile recommendation
 # ═══════════════════════════════════════════════════════════════
+
 
 @app.post("/stackbuilder/recommend")
 async def stackbuilder_recommend(body: dict[str, Any]) -> dict[str, Any]:
@@ -936,18 +944,14 @@ async def stackbuilder_topics() -> dict[str, Any]:
     """List available topics and their default configurations."""
     builder = StackBuilder()
     topics = ["documentary", "explainer", "archival", "news", "cinematic", "research", "tutorial", "historical"]
-    return {
-        "topics": {
-            t: builder.get_defaults(t)
-            for t in topics
-        }
-    }
+    return {"topics": {t: builder.get_defaults(t) for t in topics}}
 
 
 @app.get("/stackbuilder/profiles/{profile_name}")
 async def stackbuilder_profile_detail(profile_name: str) -> dict[str, Any]:
     """Get detailed tradeoff data for a specific profile."""
     from backend.stackbuilder.profiles import PROFILE_TRADEOFFS
+
     if profile_name not in PROFILE_TRADEOFFS:
         raise HTTPException(status_code=404, detail="Profile not found")
     t = PROFILE_TRADEOFFS[profile_name]
@@ -969,6 +973,7 @@ async def stackbuilder_profile_detail(profile_name: str) -> dict[str, Any]:
 # Telemetry
 # ═══════════════════════════════════════════════════════════════
 
+
 @app.get("/telemetry")
 async def get_telemetry() -> dict[str, Any]:
     """Return current session telemetry stats."""
@@ -978,6 +983,7 @@ async def get_telemetry() -> dict[str, Any]:
 # ═══════════════════════════════════════════════════════════════
 # Project Bundles
 # ═══════════════════════════════════════════════════════════════
+
 
 @app.post("/projects/{project_id}/export-bundle")
 async def export_bundle(
@@ -1025,10 +1031,12 @@ async def import_bundle(
 # Diagnostics & Onboarding
 # ═══════════════════════════════════════════════════════════════
 
+
 @app.get("/diagnostics")
 async def run_diagnostics() -> dict[str, Any]:
     """Run full system diagnostics and return actionable report."""
     from backend.settings import get_settings
+
     settings = get_settings()
     engine = DiagnosticsEngine(settings.data_dir, settings.projects_dir)
     results = await engine.run_all()
@@ -1044,9 +1052,7 @@ async def run_diagnostics() -> dict[str, Any]:
             "total": len(results),
         },
         "checks": [r.to_dict() for r in results],
-        "next_steps": [
-            r.fix for r in results if r.status in ("warning", "error") and r.fix
-        ],
+        "next_steps": [r.fix for r in results if r.status in ("warning", "error") and r.fix],
     }
 
 
@@ -1055,6 +1061,7 @@ async def quick_diagnostics() -> dict[str, Any]:
     """Quick health check for onboarding wizard."""
     try:
         import urllib.request
+
         with urllib.request.urlopen("http://127.0.0.1:8765/health", timeout=2) as resp:
             backend_ok = b"ok" in resp.read()
     except Exception:
@@ -1070,6 +1077,7 @@ async def quick_diagnostics() -> dict[str, Any]:
 # Media serving
 # ═══════════════════════════════════════════════════════════════
 
+
 @app.get("/media/{project_id}/{filename}")
 async def serve_media(project_id: str, filename: str) -> FileResponse:
     path = settings.projects_dir / project_id / filename
@@ -1084,6 +1092,7 @@ async def serve_media(project_id: str, filename: str) -> FileResponse:
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "backend.app:app",
         host=settings.host,

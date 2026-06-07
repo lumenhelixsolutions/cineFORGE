@@ -1,4 +1,5 @@
 """Google Vertex AI Veo 3.1 adapter."""
+
 from __future__ import annotations
 
 import logging
@@ -8,8 +9,11 @@ from pathlib import Path
 from typing import Any
 
 from backend.adapters.protocols import (
-    VideoModel, VideoCapabilities, VideoGenRequest, VideoGenResult,
-    ExtendRequest, CapabilityError
+    VideoCapabilities,
+    VideoGenRequest,
+    VideoGenResult,
+    ExtendRequest,
+    CapabilityError,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,6 +46,7 @@ class VertexVeoAdapter:
         if self._client is None:
             try:
                 from google import genai
+
                 self._client = genai.Client(vertexai=True, project=os.getenv("GOOGLE_CLOUD_PROJECT"))
             except ImportError:
                 raise RuntimeError("google-genai not installed")
@@ -80,6 +85,7 @@ class VertexVeoAdapter:
             )
             # Poll for result
             import time
+
             while not operation.done:
                 time.sleep(5)
                 operation = client.operations.get(operation)
@@ -104,13 +110,15 @@ class VertexVeoAdapter:
         if not self.capabilities.supports_extend:
             raise CapabilityError("Extend not supported")
         # Veo extend: use the source clip as first frame + prompt
-        return await self.generate(VideoGenRequest(
-            prompt=req.prompt,
-            duration_sec=req.duration_sec,
-            aspect_ratio="16:9",  # inferred from source
-            resolution="1080p",
-            first_frame=req.source_clip,
-        ))
+        return await self.generate(
+            VideoGenRequest(
+                prompt=req.prompt,
+                duration_sec=req.duration_sec,
+                aspect_ratio="16:9",  # inferred from source
+                resolution="1080p",
+                first_frame=req.source_clip,
+            )
+        )
 
     async def healthcheck(self) -> bool:
         try:
@@ -126,15 +134,25 @@ class VertexVeoAdapter:
     def _extract_last_frame(self, clip_path: Path) -> Path:
         out = clip_path.with_suffix(".last_frame.jpg")
         subprocess.run(
-            ["ffmpeg", "-y", "-i", str(clip_path), "-vf", r"select=eq(n\,0)+eq(n\,N-1)",
-             "-vsync", "vfr", "-q:v", "2", str(out)],
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(clip_path),
+                "-vf",
+                r"select=eq(n\,0)+eq(n\,N-1)",
+                "-vsync",
+                "vfr",
+                "-q:v",
+                "2",
+                str(out),
+            ],
             capture_output=True,
             check=True,
         )
         # Actually extract last frame properly
         subprocess.run(
-            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip_path),
-             "-vf", "scale=320:-1", "-vframes", "1", str(out)],
+            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip_path), "-vf", "scale=320:-1", "-vframes", "1", str(out)],
             capture_output=True,
             check=True,
         )
@@ -143,11 +161,21 @@ class VertexVeoAdapter:
     def _mock_generate(self, req: VideoGenRequest) -> VideoGenResult:
         """Return a synthetic result for testing."""
         import tempfile
+
         clip = Path(tempfile.mktemp(suffix=".mp4"))
         # Generate a test video with ffmpeg
         subprocess.run(
-            ["ffmpeg", "-y", "-f", "lavfi", "-i", f"testsrc=duration={req.duration_sec}:size=640x360:rate=30",
-             "-pix_fmt", "yuv420p", str(clip)],
+            [
+                "ffmpeg",
+                "-y",
+                "-f",
+                "lavfi",
+                "-i",
+                f"testsrc=duration={req.duration_sec}:size=640x360:rate=30",
+                "-pix_fmt",
+                "yuv420p",
+                str(clip),
+            ],
             capture_output=True,
             check=True,
         )

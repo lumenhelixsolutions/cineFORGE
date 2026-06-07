@@ -1,4 +1,5 @@
 """Frame bridge — uses last frame of shot N as first frame of shot N+1."""
+
 from __future__ import annotations
 
 import logging
@@ -16,7 +17,9 @@ class FrameBridge:
     def __init__(self, adapter: VideoModel) -> None:
         self.adapter = adapter
 
-    async def bridge(self, source_clip: Path, prompt: str, duration_sec: int, aspect_ratio: str, resolution: str) -> Any:
+    async def bridge(
+        self, source_clip: Path, prompt: str, duration_sec: int, aspect_ratio: str, resolution: str
+    ) -> Any:
         if not self.adapter.capabilities.supports_frame_conditioning:
             raise RuntimeError("Adapter does not support frame conditioning")
 
@@ -34,10 +37,10 @@ class FrameBridge:
 
     def _extract_last_frame(self, clip: Path) -> Path:
         import subprocess
+
         out = clip.with_suffix(".last_frame.jpg")
         subprocess.run(
-            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip),
-             "-vf", "scale=320:-1", "-vframes", "1", str(out)],
+            ["ffmpeg", "-y", "-sseof", "-0.1", "-i", str(clip), "-vf", "scale=320:-1", "-vframes", "1", str(out)],
             capture_output=True,
             check=True,
         )

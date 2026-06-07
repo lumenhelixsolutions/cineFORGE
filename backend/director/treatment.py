@@ -1,4 +1,5 @@
 """Stage A: SourceDoc → Treatment (3-act, beat-level)."""
+
 from __future__ import annotations
 
 import json
@@ -95,18 +96,30 @@ TREATMENT_SCHEMA = {
                                 "id": {"type": "string"},
                                 "summary": {"type": "string", "maxLength": 140},
                                 "target_duration_sec": {"type": "integer", "enum": [4, 6, 8, 16, 24]},
-                                "emotional_register": {"type": "string", "enum": ["calm","tense","wonder","grief","triumph","comic","stark","intimate"]}
+                                "emotional_register": {
+                                    "type": "string",
+                                    "enum": [
+                                        "calm",
+                                        "tense",
+                                        "wonder",
+                                        "grief",
+                                        "triumph",
+                                        "comic",
+                                        "stark",
+                                        "intimate",
+                                    ],
+                                },
                             },
-                            "required": ["id", "summary", "target_duration_sec", "emotional_register"]
-                        }
-                    }
+                            "required": ["id", "summary", "target_duration_sec", "emotional_register"],
+                        },
+                    },
                 },
-                "required": ["title", "beats"]
-            }
+                "required": ["title", "beats"],
+            },
         },
-        "style_pack_suggestion": {"type": "string"}
+        "style_pack_suggestion": {"type": "string"},
     },
-    "required": ["logline", "theme", "tone", "acts", "style_pack_suggestion"]
+    "required": ["logline", "theme", "tone", "acts", "style_pack_suggestion"],
 }
 
 
