@@ -11,13 +11,14 @@ import ShortcutsModal from './components/ShortcutsModal';
 import KeyboardShortcuts from './components/KeyboardShortcuts';
 import { projectStore } from './stores/projectStore';
 
-type Tab = 'sources' | 'storyboard' | 'timeline' | 'preview' | 'stackbuilder';
+type Tab = 'sources' | 'storyboard' | 'timeline' | 'preview' | 'trailer' | 'stackbuilder';
 
 const tabs: { id: Tab; label: string }[] = [
   { id: 'sources', label: 'Sources' },
   { id: 'storyboard', label: 'Storyboard' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'preview', label: 'Preview' },
+  { id: 'trailer', label: 'Trailer' },
   { id: 'stackbuilder', label: 'StackBuilder' },
 ];
 

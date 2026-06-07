@@ -32,6 +32,8 @@ class Project(Base):
     tokens_used_input: Mapped[int] = mapped_column(Integer, default=0)
     tokens_used_output: Mapped[int] = mapped_column(Integer, default=0)
     tokens_used_cached: Mapped[int] = mapped_column(Integer, default=0)
+    trailer_task_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    trailer_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     sources: Mapped[list[SourceDoc]] = relationship("SourceDoc", back_populates="project", cascade="all, delete-orphan")
     treatments: Mapped[list[Treatment]] = relationship(
@@ -122,6 +124,27 @@ class RenderJob(Base):
     total_cost_usd: Mapped[float] = mapped_column(default=0.0)
 
     project: Mapped[Project] = relationship("Project", back_populates="renders")
+
+
+class BrollClip(Base):
+    __tablename__ = "broll_clips"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    shot_id: Mapped[str] = mapped_column(ForeignKey("shots.id"), nullable=False)
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), nullable=False)
+    prompt_text: Mapped[str] = mapped_column(String(2000), default="")
+    clip_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    thumbnail_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default="draft")  # draft, rendering, done, failed
+    error: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    cost_usd: Mapped[float] = mapped_column(default=0.0)
+    provider_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    duration_sec: Mapped[float] = mapped_column(default=0.0)
+    clip_meta: Mapped[dict[str, Any]] = mapped_column(SQLiteJSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    shot: Mapped[Shot] = relationship("Shot")
+    project: Mapped[Project] = relationship("Project")
 
 
 class User(Base):

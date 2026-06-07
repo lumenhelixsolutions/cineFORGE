@@ -5,6 +5,7 @@ import Storyboard from './components/Storyboard';
 import TreatmentView from './components/TreatmentView';
 import TimelineView from './components/TimelineView';
 import PreviewPlayer from './components/PreviewPlayer';
+import TrailerView from './components/TrailerView';
 import { projectStore } from './stores/projectStore';
 
 export default function ProjectView() {
@@ -29,6 +30,9 @@ export default function ProjectView() {
       </Show>
       <Show when={projectStore.state.activeTab === 'preview'}>
         <PreviewPlayer />
+      </Show>
+      <Show when={projectStore.state.activeTab === 'trailer'}>
+        <TrailerView />
       </Show>
     </>
   );

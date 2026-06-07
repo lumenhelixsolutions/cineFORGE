@@ -110,6 +110,25 @@ class MPTBridge:
             return {"task_id": task_id, "status": "failed", "error": str(exc)}
 
 
+    def generate_video(
+        self,
+        video_subject: str,
+        video_script: str = "",
+        video_terms: list[str] | None = None,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """High-level wrapper to start a video generation task and return task metadata."""
+        result = self.start_task(
+            video_subject=video_subject,
+            video_script=video_script,
+            video_terms=video_terms,
+            **kwargs,
+        )
+        # MPT returns {"status": 200, "data": {"task_id": "..."}}
+        task_id = result.get("data", {}).get("task_id") or result.get("task_id")
+        return {"task_id": task_id, "status": "queued", "bridge_response": result}
+
+
 def get_bridge() -> MPTBridge:
     """Return a configured bridge instance."""
     endpoint = os.getenv("MPT_ENDPOINT", "http://127.0.0.1:8080")

@@ -51,7 +51,7 @@ interface StoreState {
   commandPaletteOpen: boolean;
   stackRecommendations: any[];
   stackDefaults: any | null;
-  activeTab: 'sources' | 'storyboard' | 'timeline' | 'preview' | 'stackbuilder';
+  activeTab: 'sources' | 'storyboard' | 'timeline' | 'preview' | 'trailer' | 'stackbuilder';
 }
 
 export const [state, setState] = createStore<StoreState>({
@@ -284,6 +284,39 @@ export const projectStore = {
       toastStore.success('Timeline reordered');
     } catch (err: any) {
       toastStore.error(`Failed to reorder shots: ${err.message}`);
+      throw err;
+    }
+  },
+
+  async generateTrailer(projectId: string) {
+    setState('loading', true);
+    try {
+      const result = await api.trailer.generate(projectId);
+      toastStore.info('Trailer generation started');
+      return result;
+    } catch (err: any) {
+      setState('error', err.message);
+      toastStore.error(`Trailer generation failed: ${err.message}`);
+      throw err;
+    } finally {
+      setState('loading', false);
+    }
+  },
+
+  async getTrailerStatus(projectId: string) {
+    try {
+      return await api.trailer.status(projectId);
+    } catch (err: any) {
+      setState('error', err.message);
+      throw err;
+    }
+  },
+
+  async getTrailerDownload(projectId: string) {
+    try {
+      return await api.trailer.download(projectId);
+    } catch (err: any) {
+      setState('error', err.message);
       throw err;
     }
   },

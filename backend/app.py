@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from backend.settings import get_settings
-from backend.models.project import init_db, Project, Shot, SourceDoc, Treatment, RenderJob
+from backend.models.project import init_db, Project, Shot, SourceDoc, Treatment, RenderJob, BrollClip
 from backend.adapters.registry import get_registry
 from backend.adapters.protocols import CapabilityError
 from backend.ingest.pipeline import ingest_document
@@ -41,6 +41,8 @@ from backend.database import get_db, AsyncSessionLocal
 from backend.auth import APIKeyMiddleware
 from backend.telemetry import session_summary
 from backend.bundle import export_project_bundle, import_project_bundle
+from backend.broll.mpt_bridge import MPTBrollBridge
+from tools.shared.mpt_bridge import get_bridge
 
 # ── Structured logging ──────────────────────────────────────────
 correlation_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("correlation_id", default="")
@@ -311,6 +313,8 @@ async def update_project(
         "routing_profile",
         "preview_mode",
         "budget_usd",
+        "trailer_task_id",
+        "trailer_url",
     ):
         if key in body:
             setattr(proj, key, body[key])
@@ -318,6 +322,126 @@ async def update_project(
     await db.commit()
     await db.refresh(proj)
     return {"status": "updated"}
+
+
+# ═══════════════════════════════════════════════════════════════
+# Trailer generation (MoneyPrinterTurbo bridge)
+# ═══════════════════════════════════════════════════════════════
+
+
+@app.post("/api/projects/{project_id}/generate-trailer")
+async def generate_trailer(
+    project_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Kick off a trailer generation via MoneyPrinterTurbo."""
+    result = await db.execute(
+        select(Project)
+        .where(Project.id == project_id)
+        .options(selectinload(Project.sources), selectinload(Project.treatments))
+    )
+    proj = result.scalar_one_or_none()
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Extract logline + synopsis from latest treatment
+    treatment = None
+    if proj.treatments:
+        treatment = max(proj.treatments, key=lambda t: t.created_at)
+
+    logline = ""
+    synopsis = ""
+    if treatment and treatment.json:
+        logline = treatment.json.get("logline", "")
+        synopsis = treatment.json.get("synopsis", "") or treatment.json.get("theme", "")
+
+    if not logline:
+        # Fallback: use first 200 chars of source text
+        source_text = "\n\n".join(s.extracted_text or "" for s in proj.sources)
+        logline = (source_text or proj.name)[:200]
+
+    bridge = get_bridge()
+    try:
+        resp = bridge.generate_video(
+            video_subject=logline,
+            video_script=synopsis,
+            video_concat_mode="sequential",
+            video_language="en",
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"MPT bridge failed: {exc}")
+
+    task_id = resp.get("task_id")
+    proj.trailer_task_id = task_id
+    await db.commit()
+    return {"task_id": task_id, "status": "queued"}
+
+
+@app.get("/api/projects/{project_id}/trailer-status")
+async def trailer_status(
+    project_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Poll MPT for trailer task status."""
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    proj = result.scalar_one_or_none()
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if not proj.trailer_task_id:
+        return {"status": "not_started", "task_id": None}
+
+    bridge = get_bridge()
+    try:
+        mpt_resp = bridge.get_task(proj.trailer_task_id)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"MPT bridge failed: {exc}")
+
+    data = mpt_resp.get("data", mpt_resp)
+    state = data.get("state", "unknown")
+    progress = data.get("progress", 0)
+    url = data.get("video_url") or data.get("url")
+    if url and not proj.trailer_url:
+        proj.trailer_url = url
+        await db.commit()
+
+    return {
+        "task_id": proj.trailer_task_id,
+        "status": state,
+        "progress": progress,
+        "url": url or proj.trailer_url,
+    }
+
+
+@app.get("/api/projects/{project_id}/trailer-download")
+async def trailer_download(
+    project_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Return the download URL for the generated trailer."""
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    proj = result.scalar_one_or_none()
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    if not proj.trailer_url:
+        # Try refreshing from MPT
+        if proj.trailer_task_id:
+            bridge = get_bridge()
+            try:
+                mpt_resp = bridge.get_task(proj.trailer_task_id)
+                data = mpt_resp.get("data", mpt_resp)
+                url = data.get("video_url") or data.get("url")
+                if url:
+                    proj.trailer_url = url
+                    await db.commit()
+            except Exception:
+                pass
+
+    if not proj.trailer_url:
+        raise HTTPException(status_code=404, detail="Trailer not ready or not generated")
+
+    return {"url": proj.trailer_url, "task_id": proj.trailer_task_id}
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -502,6 +626,53 @@ async def create_storyboard(
         "shot_count": len(shots_data),
         "token_usage": usage.model_dump(),
         "shots": shots_data,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════
+# Shots
+# ═══════════════════════════════════════════════════════════════
+
+
+@app.patch("/projects/{project_id}/shots/{shot_id}")
+async def update_shot(
+    project_id: str,
+    shot_id: str,
+    body: dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Update shot fields."""
+    result = await db.execute(
+        select(Shot).where(Shot.id == shot_id, Shot.project_id == project_id)
+    )
+    shot = result.scalar_one_or_none()
+    if not shot:
+        raise HTTPException(status_code=404, detail="Shot not found")
+    for key in (
+        "order_index",
+        "duration_sec",
+        "tier",
+        "prompt_text",
+        "bridge_strategy",
+        "preferred_bridge",
+        "narration",
+        "transition_in",
+        "status",
+        "error",
+    ):
+        if key in body:
+            setattr(shot, key, body[key])
+    shot.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    await db.commit()
+    await db.refresh(shot)
+    return {
+        "id": shot.id,
+        "order_index": shot.order_index,
+        "duration_sec": shot.duration_sec,
+        "tier": shot.tier,
+        "prompt_text": shot.prompt_text,
+        "bridge_strategy": shot.bridge_strategy,
+        "status": shot.status,
     }
 
 
@@ -839,6 +1010,140 @@ async def extend_shot(
         "duration_sec": ext_result.duration_sec,
         "provider_id": provider_id,
     }
+
+
+# ═══════════════════════════════════════════════════════════════
+# B-Roll (MoneyPrinterTurbo Bridge)
+# ═══════════════════════════════════════════════════════════════
+
+
+@app.post("/api/scenes/{scene_id}/generate-broll")
+async def generate_broll_for_scene(
+    scene_id: str,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Generate a B-roll clip for a single scene (shot)."""
+    result = await db.execute(select(Shot).where(Shot.id == scene_id))
+    shot = result.scalar_one_or_none()
+    if not shot:
+        raise HTTPException(status_code=404, detail="Scene not found")
+
+    p_result = await db.execute(select(Project).where(Project.id == shot.project_id))
+    proj = p_result.scalar_one_or_none()
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    clip = BrollClip(
+        shot_id=scene_id,
+        project_id=proj.id,
+        status="rendering",
+    )
+    db.add(clip)
+    await db.commit()
+    await db.refresh(clip)
+
+    # Launch async generation
+    background_tasks.add_task(_run_broll_generation, clip.id, scene_id, proj.id)
+    return {"clip_id": clip.id, "status": "queued"}
+
+
+async def _run_broll_generation(clip_id: str, shot_id: str, project_id: str) -> None:
+    """Background B-roll generation task."""
+    async with AsyncSessionLocal() as session:
+        c_result = await session.execute(select(BrollClip).where(BrollClip.id == clip_id))
+        clip = c_result.scalar_one()
+        s_result = await session.execute(select(Shot).where(Shot.id == shot_id))
+        shot = s_result.scalar_one()
+        p_result = await session.execute(select(Project).where(Project.id == project_id))
+        proj = p_result.scalar_one()
+
+        bridge = MPTBrollBridge(
+            registry=app_ctx.registry,
+            router=app_ctx.router,
+            project_dir=settings.projects_dir / project_id,
+        )
+        try:
+            result = await bridge.generate_for_shot(shot, proj)
+            clip.clip_path = result["clip_path"]
+            clip.thumbnail_path = result["thumbnail_path"]
+            clip.prompt_text = result["prompt_text"]
+            clip.cost_usd = result["cost_usd"]
+            clip.provider_id = result["provider_id"]
+            clip.duration_sec = result["duration_sec"]
+            clip.clip_meta = result["metadata"]
+            clip.status = "done"
+        except Exception as exc:
+            clip.status = "failed"
+            clip.error = str(exc)
+        await session.commit()
+
+
+@app.post("/api/projects/{project_id}/generate-all-broll")
+async def generate_all_broll(
+    project_id: str,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Generate B-roll clips for every shot in a project."""
+    result = await db.execute(
+        select(Project).where(Project.id == project_id).options(selectinload(Project.shots))
+    )
+    proj = result.scalar_one_or_none()
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    queued: list[str] = []
+    for shot in proj.shots:
+        clip = BrollClip(
+            shot_id=shot.id,
+            project_id=proj.id,
+            status="rendering",
+        )
+        db.add(clip)
+        await db.commit()
+        await db.refresh(clip)
+        background_tasks.add_task(_run_broll_generation, clip.id, shot.id, proj.id)
+        queued.append(clip.id)
+
+    return {"queued": queued, "count": len(queued)}
+
+
+@app.get("/api/scenes/{scene_id}/broll")
+async def list_scene_broll(scene_id: str, db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
+    """List all B-roll clips generated for a scene (shot)."""
+    result = await db.execute(select(BrollClip).where(BrollClip.shot_id == scene_id).order_by(BrollClip.created_at.desc()))
+    clips = result.scalars().all()
+    return [
+        {
+            "id": c.id,
+            "shot_id": c.shot_id,
+            "project_id": c.project_id,
+            "status": c.status,
+            "clip_path": c.clip_path,
+            "thumbnail_path": c.thumbnail_path,
+            "prompt_text": c.prompt_text,
+            "cost_usd": c.cost_usd,
+            "provider_id": c.provider_id,
+            "duration_sec": c.duration_sec,
+            "metadata": c.clip_meta,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+        }
+        for c in clips
+    ]
+
+
+@app.get("/api/broll/{clip_id}/download")
+async def download_broll(clip_id: str, db: AsyncSession = Depends(get_db)) -> FileResponse:
+    """Download a generated B-roll clip."""
+    result = await db.execute(select(BrollClip).where(BrollClip.id == clip_id))
+    clip = result.scalar_one_or_none()
+    if not clip or not clip.clip_path:
+        raise HTTPException(status_code=404, detail="Clip not found")
+    path = Path(clip.clip_path)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Clip file not found")
+    return FileResponse(path, media_type="video/mp4", filename=path.name)
 
 
 # ═══════════════════════════════════════════════════════════════
