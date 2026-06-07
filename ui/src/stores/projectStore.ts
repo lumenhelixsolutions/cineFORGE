@@ -66,7 +66,7 @@ interface StoreState {
   commandPaletteOpen: boolean;
   stackRecommendations: any[];
   stackDefaults: any | null;
-  activeTab: 'sources' | 'storyboard' | 'timeline' | 'preview' | 'trailer' | 'stackbuilder';
+  activeTab: 'sources' | 'storyboard' | 'timeline' | 'preview' | 'trailer' | 'stackbuilder' | 'export';
   brollClips: Record<string, BrollClip[]>;
 }
 
@@ -300,9 +300,11 @@ export const projectStore = {
       // Poll for a bit then load
       setTimeout(() => this.loadBroll(shotId), 2000);
       setTimeout(() => this.loadBroll(shotId), 5000);
+      return true;
     } catch (err: any) {
       setState('error', err.message);
       toastStore.error(`B-roll generation failed: ${err.message}`);
+      return false;
     } finally {
       setState('loading', false);
     }

@@ -278,3 +278,47 @@ Return current session telemetry stats.
 ### Responses
 - **200** — Successful Response
 
+## POST /api/scenes/{scene_id}/generate-broll
+**Summary:** Generate B-Roll for Scene
+Queue background generation of a B-roll clip for a given shot.
+### Parameters
+- `scene_id` (path) — string **required**
+
+### Responses
+- **200** — Successful Response
+- **404** — Scene Not Found
+- **422** — Validation Error
+
+## POST /api/projects/{project_id}/generate-all-broll
+**Summary:** Generate All B-Roll
+Queue B-roll generation for every shot in a project.
+### Parameters
+- `project_id` (path) — string **required**
+
+### Responses
+- **200** — Successful Response
+- **404** — Project Not Found
+- **422** — Validation Error
+
+## GET /api/scenes/{scene_id}/broll
+**Summary:** List Scene B-Roll
+List generated B-roll clips for a shot, ordered newest first. Supports pagination via `skip` and `limit`.
+### Parameters
+- `scene_id` (path) — string **required**
+- `skip` (query) — integer (default: 0)
+- `limit` (query) — integer (default: 100, max: 500)
+
+### Responses
+- **200** — Successful Response
+- **422** — Validation Error
+
+## GET /api/broll/{clip_id}/download
+**Summary:** Download B-Roll Clip
+Return the generated B-roll video file.
+### Parameters
+- `clip_id` (path) — string **required**
+
+### Responses
+- **200** — Successful Response (video file)
+- **404** — Clip Not Found
+- **422** — Validation Error

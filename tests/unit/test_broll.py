@@ -8,12 +8,23 @@ from pathlib import Path
 from httpx import AsyncClient, ASGITransport
 
 from backend.app import app
+from backend.database import AsyncSessionLocal
+from backend.models.project import Base
 
 
 @pytest.fixture
 async def client() -> AsyncClient:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
+
+
+@pytest.fixture(autouse=True)
+async def cleanup_db() -> None:
+    yield
+    async with AsyncSessionLocal() as session:
+        for table in reversed(Base.metadata.sorted_tables):
+            await session.execute(table.delete())
+        await session.commit()
 
 
 class TestGenerateBroll:
@@ -31,7 +42,6 @@ class TestGenerateBroll:
         project_id = create_resp.json()["id"]
 
         # Create a shot directly
-        from backend.database import AsyncSessionLocal
         from backend.models.project import Shot
         async with AsyncSessionLocal() as session:
             shot = Shot(
@@ -71,12 +81,48 @@ class TestGenerateBroll:
         assert data["status"] == "queued"
 
     @pytest.mark.asyncio
+    async def test_queues_broll_for_empty_prompt(self, client: AsyncClient) -> None:
+        """B-Roll generation should queue even when the shot has an empty prompt."""
+        create_resp = await client.post("/projects", json={"name": "Empty Prompt Broll Test"})
+        assert create_resp.status_code == 200
+        project_id = create_resp.json()["id"]
+
+        from backend.models.project import Shot
+        async with AsyncSessionLocal() as session:
+            shot = Shot(
+                project_id=project_id,
+                order_index=0,
+                duration_sec=6,
+                tier="standard",
+                prompt_text="",
+                continuity={},
+            )
+            session.add(shot)
+            await session.commit()
+            shot_id = shot.id
+
+        with patch("backend.app.MPTBrollBridge.generate_for_shot", return_value={
+            "clip_path": "/tmp/fake_broll.mp4",
+            "thumbnail_path": "/tmp/fake_broll.jpg",
+            "metadata": {},
+            "cost_usd": 0.0,
+            "provider_id": "mpt",
+            "prompt_text": "",
+            "duration_sec": 4.0,
+        }):
+            resp = await client.post(f"/api/scenes/{shot_id}/generate-broll")
+
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "clip_id" in data
+        assert data["status"] == "queued"
+
+    @pytest.mark.asyncio
     async def test_lists_broll_for_scene(self, client: AsyncClient) -> None:
         create_resp = await client.post("/projects", json={"name": "List Broll Test"})
         assert create_resp.status_code == 200
         project_id = create_resp.json()["id"]
 
-        from backend.database import AsyncSessionLocal
         from backend.models.project import Shot, BrollClip
         async with AsyncSessionLocal() as session:
             shot = Shot(
@@ -110,12 +156,62 @@ class TestGenerateBroll:
         assert data[0]["metadata"]["location"] == "forest"
 
     @pytest.mark.asyncio
+    async def test_broll_list_pagination(self, client: AsyncClient) -> None:
+        """B-Roll list should honour skip and limit parameters."""
+        create_resp = await client.post("/projects", json={"name": "Pagination Broll Test"})
+        assert create_resp.status_code == 200
+        project_id = create_resp.json()["id"]
+
+        from backend.models.project import Shot, BrollClip
+        async with AsyncSessionLocal() as session:
+            shot = Shot(
+                project_id=project_id,
+                order_index=0,
+                duration_sec=6,
+                tier="standard",
+                prompt_text="Pagination prompt",
+            )
+            session.add(shot)
+            await session.commit()
+            shot_id = shot.id
+
+            for i in range(5):
+                clip = BrollClip(
+                    shot_id=shot_id,
+                    project_id=project_id,
+                    status="done",
+                    clip_path=f"/tmp/fake_{i}.mp4",
+                    prompt_text=f"Clip {i}",
+                )
+                session.add(clip)
+            await session.commit()
+
+        resp = await client.get(f"/api/scenes/{shot_id}/broll?limit=2")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data) == 2
+
+        resp = await client.get(f"/api/scenes/{shot_id}/broll?skip=2&limit=2")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data) == 2
+
+        resp = await client.get(f"/api/scenes/{shot_id}/broll?skip=4&limit=10")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data) == 1
+
+        resp = await client.get(f"/api/scenes/{shot_id}/broll?skip=10&limit=10")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data) == 0
+
+    @pytest.mark.asyncio
     async def test_download_broll(self, client: AsyncClient) -> None:
         create_resp = await client.post("/projects", json={"name": "Download Broll Test"})
         assert create_resp.status_code == 200
         project_id = create_resp.json()["id"]
 
-        from backend.database import AsyncSessionLocal
         from backend.models.project import Shot, BrollClip
         async with AsyncSessionLocal() as session:
             shot = Shot(
@@ -156,7 +252,6 @@ class TestGenerateAllBroll:
         assert create_resp.status_code == 200
         project_id = create_resp.json()["id"]
 
-        from backend.database import AsyncSessionLocal
         from backend.models.project import Shot
         async with AsyncSessionLocal() as session:
             for i in range(3):

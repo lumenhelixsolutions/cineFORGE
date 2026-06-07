@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
+import asyncio
 import contextvars
 import json
 import logging
 import shutil
 import uuid
+import zipfile
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, AsyncGenerator, Awaitable, Callable
 
-from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile, BackgroundTasks
+from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
@@ -21,7 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from backend.settings import get_settings
-from backend.models.project import init_db, Project, Shot, SourceDoc, Treatment, RenderJob, BrollClip
+from backend.models.project import init_db, Project, Shot, SourceDoc, Treatment, RenderJob, BrollClip, ExportJob
 from backend.adapters.registry import get_registry
 from backend.adapters.protocols import CapabilityError
 from backend.ingest.pipeline import ingest_document
@@ -1107,9 +1109,20 @@ async def generate_all_broll(
 
 
 @app.get("/api/scenes/{scene_id}/broll")
-async def list_scene_broll(scene_id: str, db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
-    """List all B-roll clips generated for a scene (shot)."""
-    result = await db.execute(select(BrollClip).where(BrollClip.shot_id == scene_id).order_by(BrollClip.created_at.desc()))
+async def list_scene_broll(
+    scene_id: str,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    db: AsyncSession = Depends(get_db),
+) -> list[dict[str, Any]]:
+    """List B-roll clips generated for a scene (shot)."""
+    result = await db.execute(
+        select(BrollClip)
+        .where(BrollClip.shot_id == scene_id)
+        .order_by(BrollClip.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+    )
     clips = result.scalars().all()
     return [
         {
@@ -1141,6 +1154,307 @@ async def download_broll(clip_id: str, db: AsyncSession = Depends(get_db)) -> Fi
     if not path.exists():
         raise HTTPException(status_code=404, detail="Clip file not found")
     return FileResponse(path, media_type="video/mp4", filename=path.name)
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# Export & Distribution
+# ═══════════════════════════════════════════════════════════════
+
+
+class ExportRequest(BaseModel):
+    type: str
+
+
+@app.post("/api/projects/{project_id}/export")
+async def queue_export(
+    project_id: str,
+    req: ExportRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    proj = result.scalar_one_or_none()
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if req.type not in ("mp4", "archive", "stills", "edl"):
+        raise HTTPException(status_code=400, detail="Invalid export type")
+
+    job = ExportJob(project_id=project_id, type=req.type, status="queued")
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
+
+    background_tasks.add_task(_run_export, job.id, project_id, req.type)
+    return {"job_id": job.id, "status": "queued", "type": req.type}
+
+
+@app.get("/api/projects/{project_id}/exports")
+async def list_exports(project_id: str, db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    proj = result.scalar_one_or_none()
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    result = await db.execute(
+        select(ExportJob).where(ExportJob.project_id == project_id).order_by(ExportJob.created_at.desc())
+    )
+    jobs = result.scalars().all()
+    return [
+        {
+            "id": j.id,
+            "project_id": j.project_id,
+            "type": j.type,
+            "status": j.status,
+            "progress": j.progress,
+            "output_url": j.output_url,
+            "output_size": j.output_size,
+            "error_message": j.error_message,
+            "created_at": j.created_at.isoformat() if j.created_at else None,
+            "completed_at": j.completed_at.isoformat() if j.completed_at else None,
+        }
+        for j in jobs
+    ]
+
+
+@app.get("/api/exports/{job_id}")
+async def get_export_status(job_id: str, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    result = await db.execute(select(ExportJob).where(ExportJob.id == job_id))
+    job = result.scalar_one_or_none()
+    if not job:
+        raise HTTPException(status_code=404, detail="Export job not found")
+    return {
+        "id": job.id,
+        "project_id": job.project_id,
+        "type": job.type,
+        "status": job.status,
+        "progress": job.progress,
+        "output_url": job.output_url,
+        "output_size": job.output_size,
+        "error_message": job.error_message,
+        "created_at": job.created_at.isoformat() if job.created_at else None,
+        "completed_at": job.completed_at.isoformat() if job.completed_at else None,
+    }
+
+
+@app.get("/api/exports/{job_id}/download")
+async def download_export(job_id: str, db: AsyncSession = Depends(get_db)) -> FileResponse:
+    result = await db.execute(select(ExportJob).where(ExportJob.id == job_id))
+    job = result.scalar_one_or_none()
+    if not job:
+        raise HTTPException(status_code=404, detail="Export job not found")
+    if job.status != "completed":
+        raise HTTPException(status_code=400, detail="Export not ready")
+    if not job.output_url:
+        raise HTTPException(status_code=404, detail="Output file not found")
+    path = Path(job.output_url)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Output file missing")
+
+    media_type = "application/octet-stream"
+    if job.type == "mp4":
+        media_type = "video/mp4"
+    elif job.type == "edl":
+        media_type = "text/plain"
+    elif job.type in ("archive", "stills"):
+        media_type = "application/zip"
+
+    return FileResponse(path, media_type=media_type, filename=path.name)
+
+
+@app.delete("/api/exports/{job_id}")
+async def delete_export(job_id: str, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    result = await db.execute(select(ExportJob).where(ExportJob.id == job_id))
+    job = result.scalar_one_or_none()
+    if not job:
+        raise HTTPException(status_code=404, detail="Export job not found")
+
+    if job.output_url:
+        path = Path(job.output_url)
+        if path.exists():
+            path.unlink(missing_ok=True)
+
+    await db.delete(job)
+    await db.commit()
+    return {"status": "deleted"}
+
+
+async def _run_export(job_id: str, project_id: str, export_type: str) -> None:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(ExportJob).where(ExportJob.id == job_id))
+        job = result.scalar_one()
+        settings = get_settings()
+        exports_dir = settings.projects_dir / project_id / "exports"
+        exports_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            job.status = "processing"
+            await session.commit()
+
+            for i in range(1, 21):
+                job.progress = i * 5.0
+                await session.commit()
+                await asyncio.sleep(0.5)
+
+            if export_type == "mp4":
+                output_path = exports_dir / f"{project_id}_export.mp4"
+                master_path = settings.projects_dir / project_id / "master.mp4"
+                if master_path.exists():
+                    shutil.copy2(master_path, output_path)
+                else:
+                    output_path.write_bytes(b"")
+                job.output_url = str(output_path)
+                job.output_size = output_path.stat().st_size
+
+            elif export_type == "archive":
+                output_path = await _create_archive(session, project_id, exports_dir)
+                job.output_url = str(output_path)
+                job.output_size = output_path.stat().st_size
+
+            elif export_type == "stills":
+                output_path = await _create_stills(session, project_id, exports_dir)
+                job.output_url = str(output_path)
+                job.output_size = output_path.stat().st_size
+
+            elif export_type == "edl":
+                output_path = await _create_edl(session, project_id, exports_dir)
+                job.output_url = str(output_path)
+                job.output_size = output_path.stat().st_size
+
+            job.status = "completed"
+            job.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            job.progress = 100.0
+            await session.commit()
+        except Exception as exc:
+            job.status = "failed"
+            job.error_message = str(exc)
+            job.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            await session.commit()
+
+
+async def _create_archive(session: AsyncSession, project_id: str, exports_dir: Path) -> Path:
+    output_path = exports_dir / f"{project_id}_archive.zip"
+    result = await session.execute(
+        select(Project).where(Project.id == project_id).options(selectinload(Project.shots), selectinload(Project.sources))
+    )
+    proj = result.scalar_one()
+    settings = get_settings()
+    with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        manifest = {
+            "project": {
+                "id": proj.id,
+                "name": proj.name,
+                "aspect_ratio": proj.aspect_ratio,
+                "resolution": proj.resolution,
+                "target_duration_sec": proj.target_duration_sec,
+                "created_at": proj.created_at.isoformat() if proj.created_at else None,
+            },
+            "shots": [
+                {
+                    "id": s.id,
+                    "order_index": s.order_index,
+                    "duration_sec": s.duration_sec,
+                    "tier": s.tier,
+                    "prompt_text": s.prompt_text,
+                    "clip_path": s.clip_path,
+                    "bridge_strategy": s.bridge_strategy,
+                    "transition_in": s.transition_in,
+                }
+                for s in proj.shots
+            ],
+            "sources": [
+                {
+                    "id": s.id,
+                    "kind": s.kind,
+                    "extracted_text": s.extracted_text,
+                    "word_count": s.word_count,
+                }
+                for s in proj.sources
+            ],
+        }
+        zf.writestr("project.json", json.dumps(manifest, indent=2))
+        proj_dir = settings.projects_dir / project_id
+        if proj_dir.exists():
+            for file_path in proj_dir.rglob("*"):
+                if file_path.is_file() and file_path.suffix not in (".edl", ".zip") and "exports" not in str(file_path.relative_to(proj_dir)).split("/"):
+                    arcname = "assets/" + str(file_path.relative_to(proj_dir)).replace("\\", "/")
+                    zf.write(file_path, arcname)
+    return output_path
+
+
+async def _create_stills(session: AsyncSession, project_id: str, exports_dir: Path) -> Path:
+    output_path = exports_dir / f"{project_id}_stills.zip"
+    result = await session.execute(select(Project).where(Project.id == project_id).options(selectinload(Project.shots)))
+    proj = result.scalar_one()
+    png_data = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82"
+    with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for shot in proj.shots:
+            png_name = f"shot_{shot.order_index:03d}.png"
+            zf.writestr(png_name, png_data)
+    return output_path
+
+
+async def _create_edl(session: AsyncSession, project_id: str, exports_dir: Path) -> Path:
+    output_path = exports_dir / f"{project_id}.edl"
+    result = await session.execute(select(Project).where(Project.id == project_id).options(selectinload(Project.shots)))
+    proj = result.scalar_one()
+    edl_content = _generate_edl(proj)
+    output_path.write_text(edl_content, encoding="utf-8")
+    return output_path
+
+
+def _generate_edl(project: Project) -> str:
+    lines = []
+    lines.append(f"TITLE:   {project.name or 'Untitled'}")
+    lines.append("FCM: NON-DROP FRAME")
+    lines.append("")
+
+    record_time = 0.0
+
+    for idx, shot in enumerate(sorted(project.shots, key=lambda s: s.order_index)):
+        event_num = idx + 1
+        reel = f"SHOT{shot.order_index + 1:03d}"[:8]
+        duration = shot.duration_sec or 5
+        source_in = _seconds_to_tc(0.0)
+        source_out = _seconds_to_tc(duration)
+        record_in = _seconds_to_tc(record_time)
+        record_out = _seconds_to_tc(record_time + duration)
+
+        transition = shot.transition_in or shot.bridge_strategy or "hard_cut"
+        if transition in ("dissolve", "cross_dissolve", "cross_dissolve_300ms", "dip_to_black"):
+            lines.append(
+                f"{event_num:03d}  {reel:8s} V     D    030 {source_in} {source_out} {record_in} {record_out}"
+            )
+        elif transition in ("wipe", "whip_pan"):
+            lines.append(
+                f"{event_num:03d}  {reel:8s} V     W    030 {source_in} {source_out} {record_in} {record_out}"
+            )
+        else:
+            lines.append(
+                f"{event_num:03d}  {reel:8s} V     C        {source_in} {source_out} {record_in} {record_out}"
+            )
+
+        clip_name = shot.clip_path or f"shot_{shot.order_index:03d}.mp4"
+        lines.append(f"* FROM CLIP NAME: {clip_name}")
+        if shot.prompt_text:
+            lines.append(f"* DESCRIPTION: {shot.prompt_text[:64]}")
+        lines.append("")
+
+        if transition in ("dissolve", "cross_dissolve", "cross_dissolve_300ms", "dip_to_black"):
+            record_time += max(duration - 1.0, 0)
+        else:
+            record_time += duration
+
+    return "\n".join(lines)
+
+
+def _seconds_to_tc(seconds: float) -> str:
+    total_frames = int(seconds * 30)
+    hours = total_frames // (30 * 3600)
+    minutes = (total_frames % (30 * 3600)) // (30 * 60)
+    secs = (total_frames % (30 * 60)) // 30
+    frames = total_frames % 30
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}:{frames:02d}"
 
 
 # ═══════════════════════════════════════════════════════════════

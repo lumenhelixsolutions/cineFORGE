@@ -12,6 +12,10 @@ CineForge is a local-first desktop application that orchestrates Google Veo 3.1,
 
 Think NotebookLM's Cinematic Video Overview, but you control every frame.
 
+## Features
+
+- **B-Roll Generation** — Auto-generate supplementary stock-footage clips for any shot via the MoneyPrinterTurbo bridge. Clips are tracked per-shot, support pagination, and can be downloaded individually or bulk-generated across an entire project.
+
 ## Architecture
 
 - **Shell**: Tauri 2.x (Rust) — ~10 MB binary, native file dialogs, system tray

@@ -76,6 +76,9 @@ export default function TrailerView() {
     }
   };
 
+  const isIdle = () => !url() && (status() === 'idle' || status() === 'not_started');
+  const isLoading = () => status() === 'queued' || status() === 'processing' || polling();
+
   return (
     <div class="p-6 space-y-6 overflow-auto h-full">
       <div class="flex items-center justify-between">
@@ -85,12 +88,14 @@ export default function TrailerView() {
             class="px-3 py-1.5 text-xs font-medium bg-accent hover:bg-accent/80 rounded transition-colors disabled:opacity-50"
             onClick={handleGenerate}
             disabled={status() === 'queued' || status() === 'processing' || polling()}
+            aria-label="Generate trailer"
           >
             Generate Trailer
           </button>
           <button
             class="px-3 py-1.5 text-xs font-medium bg-panel hover:bg-panel/80 border border-border rounded transition-colors"
             onClick={handleRefresh}
+            aria-label="Refresh trailer status"
           >
             Refresh
           </button>
@@ -98,7 +103,7 @@ export default function TrailerView() {
       </div>
 
       <Show when={error()}>
-        <div class="text-xs text-red-400 bg-red-950/30 border border-red-900 rounded p-3">
+        <div class="text-xs text-red-400 bg-red-950/30 border border-red-900 rounded p-3" role="alert" aria-live="assertive">
           {error()}
         </div>
       </Show>
@@ -110,13 +115,37 @@ export default function TrailerView() {
             <span class="animate-pulse">Polling…</span>
           </Show>
         </div>
-        <div class="h-2 bg-panel rounded-full overflow-hidden border border-border">
+        <div
+          class="h-2 bg-panel rounded-full overflow-hidden border border-border"
+          role="progressbar"
+          aria-valuenow={Math.min(100, Math.max(0, progress() * 100))}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Trailer generation progress"
+        >
           <div
             class="h-full bg-accent transition-all duration-500"
             style={{ width: `${Math.min(100, Math.max(0, progress() * 100))}%` }}
           />
         </div>
       </div>
+
+      <Show when={isIdle()}>
+        <div class="flex flex-col items-center justify-center py-12 text-muted text-sm space-y-3" role="status">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-muted/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <p>No trailer generated yet.</p>
+          <p class="text-xs">Click <span class="text-white font-medium">Generate Trailer</span> to create a preview cut.</p>
+        </div>
+      </Show>
+
+      <Show when={isLoading() && !url()}>
+        <div class="space-y-3" role="status" aria-label="Generating trailer">
+          <div class="aspect-video max-w-2xl bg-surface rounded border border-border animate-pulse" />
+          <div class="h-4 w-1/3 bg-surface rounded animate-pulse" />
+        </div>
+      </Show>
 
       <Show when={url()}>
         <div class="space-y-2">
@@ -125,11 +154,13 @@ export default function TrailerView() {
             src={url()!}
             controls
             class="w-full max-w-2xl rounded border border-border bg-black"
+            aria-label="Trailer preview"
           />
           <a
             href={url()!}
             download=""
             class="inline-block text-xs text-accent hover:underline"
+            aria-label="Download trailer"
           >
             Download trailer
           </a>

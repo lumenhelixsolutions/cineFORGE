@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import String, Integer, DateTime, ForeignKey, create_engine
@@ -20,8 +20,8 @@ class Project(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     style_pack_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     aspect_ratio: Mapped[str] = mapped_column(String(10), default="16:9")
     resolution: Mapped[str] = mapped_column(String(10), default="1080p")
@@ -41,6 +41,7 @@ class Project(Base):
     )
     shots: Mapped[list[Shot]] = relationship("Shot", back_populates="project", cascade="all, delete-orphan")
     renders: Mapped[list[RenderJob]] = relationship("RenderJob", back_populates="project", cascade="all, delete-orphan")
+    exports: Mapped[list[ExportJob]] = relationship("ExportJob", back_populates="project", cascade="all, delete-orphan")
 
 
 class SourceDoc(Base):
@@ -66,7 +67,7 @@ class Treatment(Base):
     json: Mapped[dict[str, Any]] = mapped_column(SQLiteJSON, default=dict)
     llm_model: Mapped[str] = mapped_column(String(100), nullable=False)
     token_usage: Mapped[dict[str, Any]] = mapped_column(SQLiteJSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     project: Mapped[Project] = relationship("Project", back_populates="treatments")
 
@@ -115,7 +116,7 @@ class RenderJob(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), nullable=False)
-    started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     output_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
     timeline_json: Mapped[dict[str, Any]] = mapped_column(SQLiteJSON, default=dict)
@@ -141,10 +142,27 @@ class BrollClip(Base):
     provider_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     duration_sec: Mapped[float] = mapped_column(default=0.0)
     clip_meta: Mapped[dict[str, Any]] = mapped_column(SQLiteJSON, default=dict)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     shot: Mapped[Shot] = relationship("Shot")
     project: Mapped[Project] = relationship("Project")
+
+
+class ExportJob(Base):
+    __tablename__ = "export_jobs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    project_id: Mapped[str] = mapped_column(ForeignKey("projects.id"), nullable=False)
+    type: Mapped[str] = mapped_column(String(20), nullable=False)  # mp4, archive, stills, edl
+    status: Mapped[str] = mapped_column(String(20), default="queued")  # queued, processing, completed, failed
+    progress: Mapped[float] = mapped_column(default=0.0)
+    output_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    output_size: Mapped[int] = mapped_column(Integer, default=0)
+    error_message: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    project: Mapped[Project] = relationship("Project", back_populates="exports")
 
 
 class User(Base):
@@ -152,7 +170,7 @@ class User(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     api_key_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 def init_db(database_url: str) -> None:
