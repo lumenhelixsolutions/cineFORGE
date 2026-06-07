@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import contextvars
+import html
 import json
 import logging
+import os
 import shutil
 import uuid
 import zipfile
@@ -15,9 +17,10 @@ from pathlib import Path
 from typing import Any, AsyncGenerator, Awaitable, Callable
 
 from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile, BackgroundTasks
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -44,6 +47,18 @@ from backend.auth import APIKeyMiddleware
 from backend.telemetry import session_summary
 from backend.bundle import export_project_bundle, import_project_bundle
 from backend.broll.mpt_bridge import MPTBrollBridge
+from backend.exceptions import (
+    ConflictError,
+    NotFoundError,
+    ValidationError,
+    conflict_error_handler,
+    http_exception_handler,
+    not_found_handler,
+    request_validation_error_handler,
+    unhandled_exception_handler,
+    validation_error_handler,
+)
+from backend.middleware import RateLimitMiddleware, SecurityHeadersMiddleware
 from tools.shared.mpt_bridge import get_bridge
 
 # ── Structured logging ──────────────────────────────────────────
@@ -122,16 +137,33 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(title="CineForge", version="0.1.0", lifespan=lifespan)
 
-# CORS: allow all origins for local development
+# ── Exception handlers ──────────────────────────────────────────
+app.add_exception_handler(NotFoundError, not_found_handler)
+app.add_exception_handler(ValidationError, validation_error_handler)
+app.add_exception_handler(ConflictError, conflict_error_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, request_validation_error_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
+
+# ── CORS ────────────────────────────────────────────────────────
+# In production, do not allow wildcard origins.
+_cors_origins = ["*"]
+if os.getenv("CINEFORGE_ENV", "development").lower() == "production":
+    _cors_origins = os.getenv("CINEFORGE_CORS_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"],
     max_age=86400,
 )
+
+# ── Security & rate limiting ────────────────────────────────────
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
 
 # Auth middleware (disabled when CINEFORGE_API_KEY is not set)
 app.add_middleware(APIKeyMiddleware)
@@ -181,12 +213,12 @@ async def reload_capabilities() -> dict[str, Any]:
 
 
 class CreateProjectRequest(BaseModel):
-    name: str
-    aspect_ratio: str = "16:9"
-    resolution: str = "1080p"
-    target_duration_sec: int = 60
-    style_pack_id: str | None = None
-    routing_profile: str = settings.default_routing_profile
+    name: str = Field(..., max_length=200)
+    aspect_ratio: str = Field(default="16:9", max_length=20)
+    resolution: str = Field(default="1080p", max_length=20)
+    target_duration_sec: int = Field(default=60, ge=1, le=36000)
+    style_pack_id: str | None = Field(default=None, max_length=200)
+    routing_profile: str = Field(default=settings.default_routing_profile, max_length=100)
 
 
 @app.post("/projects")
@@ -195,7 +227,7 @@ async def create_project(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     proj = Project(
-        name=req.name,
+        name=html.escape(req.name),
         aspect_ratio=req.aspect_ratio,
         resolution=req.resolution,
         target_duration_sec=req.target_duration_sec,
@@ -319,7 +351,15 @@ async def update_project(
         "trailer_url",
     ):
         if key in body:
-            setattr(proj, key, body[key])
+            value = body[key]
+            if key == "name" and isinstance(value, str):
+                if len(value) > 200:
+                    raise HTTPException(status_code=400, detail="Project name must be under 200 characters")
+                value = html.escape(value)
+            if key == "target_duration_sec" and isinstance(value, int):
+                if value < 1 or value > 36000:
+                    raise HTTPException(status_code=400, detail="target_duration_sec must be between 1 and 36000")
+            setattr(proj, key, value)
     proj.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
     await db.commit()
     await db.refresh(proj)
@@ -503,9 +543,9 @@ async def upload_source(
 
 
 class GenerateTreatmentRequest(BaseModel):
-    llm_provider: str | None = None
-    style_pack_id: str | None = None
-    topic: str = "documentary"
+    llm_provider: str | None = Field(default=None, max_length=100)
+    style_pack_id: str | None = Field(default=None, max_length=200)
+    topic: str = Field(default="documentary", max_length=200)
 
 
 @app.post("/projects/{project_id}/treatment")
@@ -554,9 +594,9 @@ async def create_treatment(
 
 
 class GenerateStoryboardRequest(BaseModel):
-    llm_provider: str | None = None
-    treatment_id: str | None = None
-    topic: str = "documentary"
+    llm_provider: str | None = Field(default=None, max_length=100)
+    treatment_id: str | None = Field(default=None, max_length=100)
+    topic: str = Field(default="documentary", max_length=200)
 
 
 @app.post("/projects/{project_id}/storyboard")
@@ -663,7 +703,15 @@ async def update_shot(
         "error",
     ):
         if key in body:
-            setattr(shot, key, body[key])
+            value = body[key]
+            if key in ("prompt_text", "narration", "error") and isinstance(value, str):
+                if len(value) > 5000:
+                    raise HTTPException(status_code=400, detail=f"{key} must be under 5000 characters")
+                value = html.escape(value)
+            if key == "duration_sec" and isinstance(value, (int, float)):
+                if value <= 0 or value > 36000:
+                    raise HTTPException(status_code=400, detail="duration_sec must be between 1 and 36000 seconds")
+            setattr(shot, key, value)
     await db.commit()
     await db.refresh(shot)
     return {
@@ -683,8 +731,8 @@ async def update_shot(
 
 
 class ForgePromptRequest(BaseModel):
-    shot_id: str
-    continuity_yaml: str | None = None
+    shot_id: str = Field(..., max_length=100)
+    continuity_yaml: str | None = Field(default=None, max_length=5000)
 
 
 @app.post("/projects/{project_id}/prompts/forge")
@@ -729,7 +777,7 @@ async def forge_prompt(
 
 
 class RenderShotRequest(BaseModel):
-    shot_ids: list[str] | None = None  # None = render all draft shots
+    shot_ids: list[str] | None = Field(default=None, max_length=100)  # None = render all draft shots
 
 
 @app.post("/projects/{project_id}/render")
@@ -832,7 +880,7 @@ async def _run_render(
 
 
 class StitchRequest(BaseModel):
-    output_name: str = "master"
+    output_name: str = Field(default="master", max_length=200)
 
 
 @app.post("/projects/{project_id}/stitch")
@@ -878,7 +926,7 @@ async def stitch_project(
 
 
 class NarrationRequest(BaseModel):
-    shot_ids: list[str] | None = None
+    shot_ids: list[str] | None = Field(default=None, max_length=100)
 
 
 @app.post("/projects/{project_id}/narration")
@@ -918,7 +966,7 @@ async def generate_narration(
 
 
 class RefImagesRequest(BaseModel):
-    shot_ids: list[str] | None = None
+    shot_ids: list[str] | None = Field(default=None, max_length=100)
 
 
 @app.post("/projects/{project_id}/ref-images")
@@ -964,8 +1012,8 @@ async def generate_ref_images(
 
 
 class ExtendShotRequest(BaseModel):
-    shot_id: str
-    extra_seconds: int = 7
+    shot_id: str = Field(..., max_length=100)
+    extra_seconds: int = Field(default=7, ge=1, le=300)
 
 
 @app.post("/projects/{project_id}/extend")
@@ -1163,7 +1211,7 @@ async def download_broll(clip_id: str, db: AsyncSession = Depends(get_db)) -> Fi
 
 
 class ExportRequest(BaseModel):
-    type: str
+    type: str = Field(..., max_length=50)
 
 
 @app.post("/api/projects/{project_id}/export")
