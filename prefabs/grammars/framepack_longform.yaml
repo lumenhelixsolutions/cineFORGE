@@ -1,0 +1,19 @@
+name: "FramePack Longform"
+description: "Single continuous scene evolving over time. Designed for FramePack's next-frame prediction."
+shots:
+  - type: establishing
+    duration: 8
+    tier: hero
+    notes: "Wide establishing with slow camera drift. Let environment breathe."
+  - type: evolving_action
+    duration: 16
+    tier: hero
+    notes: "Subject moves through space. Camera follows smoothly. No hard cuts."
+  - type: detail_reveal
+    duration: 8
+    tier: standard
+    notes: "Slow push to detail. Temporal consistency critical."
+  - type: atmospheric_outro
+    duration: 8
+    tier: standard
+    notes: "Hold on environment. Let FramePack's context compression work."

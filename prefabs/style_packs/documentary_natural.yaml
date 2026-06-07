@@ -1,0 +1,13 @@
+name: "Documentary Natural"
+description: "Handheld, available light, neutral grade"
+lut_path: null
+palette: "natural daylight, muted earth tones"
+film_stock: "ARRI Alexa LogC"
+lighting_model: "available light, bounce card fill"
+camera_grammar:
+  lens_default: "28mm"
+  motion_default: "subtle handheld drift"
+  grade: "neutral contrast, lifted blacks"
+audio_profile:
+  ambient: "room tone, distant conversation"
+  sfx: "natural sync sound"

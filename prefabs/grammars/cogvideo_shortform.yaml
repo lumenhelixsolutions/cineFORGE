@@ -1,0 +1,19 @@
+name: "CogVideoX Shortform"
+description: "Short punchy clips optimized for CogVideoX 4-6s limit. High impact per frame."
+shots:
+  - type: hook
+    duration: 4
+    tier: hero
+    notes: "Immediate visual impact. Strong composition."
+  - type: action_beat
+    duration: 4
+    tier: hero
+    notes: "Single clear action. No complex multi-subject interactions."
+  - type: reveal
+    duration: 4
+    tier: standard
+    notes: "Quick reveal or transition. RIFE interpolation can extend."
+  - type: outro
+    duration: 4
+    tier: title
+    notes: "Clean exit frame."

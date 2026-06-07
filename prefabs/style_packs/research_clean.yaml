@@ -1,0 +1,14 @@
+name: "Research Clean"
+description: "Academic presentation style. Neutral backgrounds, equation-friendly, minimal distraction."
+lut_path: null
+palette: "white background, black text, accent blue for highlights"
+film_stock: "digital presentation, vector crisp"
+lighting_model: "even flat studio, no shadows, screen-friendly"
+camera_grammar:
+  lens_default: "50mm"
+  motion_default: "static or slow push"
+  grade: "zero contrast curve, pure whites, no color cast"
+audio_profile:
+  ambient: "anechoic chamber silence"
+  sfx: "subtle click transitions"
+notes: "Every shot must have clear negative space for text/equation overlays. Avoid organic textures that compete with diagrams."

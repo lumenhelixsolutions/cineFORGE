@@ -1,0 +1,19 @@
+name: "Post-Process Pipeline"
+description: "Render at low res/fast, then interpolate + upscale. Cost-optimized quality."
+shots:
+  - type: draft_render
+    duration: 6
+    tier: standard
+    notes: "Render at 480p with fast model. Quality acceptable but not final."
+  - type: draft_render
+    duration: 6
+    tier: standard
+    notes: "Second draft shot. Same settings for consistency."
+  - type: interpolate
+    duration: 6
+    tier: broll
+    notes: "RIFE 2x interpolation applied post-render. Smooths motion."
+  - type: upscale
+    duration: 6
+    tier: hero
+    notes: "Real-ESRGAN x2 or x4 applied. Final delivery resolution."

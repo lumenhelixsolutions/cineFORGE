@@ -1,0 +1,14 @@
+name: "Data Visualization"
+description: "Charts, graphs, and animated data. Flat design, high readability, color-coded."
+lut_path: null
+palette: "dataviz categorical: blue, orange, green, red on dark grey"
+film_stock: "vector animation, 60fps motion graphics"
+lighting_model: "none (digital)"
+camera_grammar:
+  lens_default: "orthographic"
+  motion_default: "smooth tween"
+  grade: "gamma 2.2, sRGB precise, no film grain"
+audio_profile:
+  ambient: "clean"
+  sfx: "subtle data tick, sweep whoosh"
+notes: "All motion must be mathematically smooth (ease-in-out). Text minimum 24pt equivalent. Colorblind-safe palettes."

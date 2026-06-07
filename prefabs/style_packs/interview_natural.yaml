@@ -1,0 +1,14 @@
+name: "Interview Natural"
+description: "Documentary interview style. Subject-focused, shallow depth, environmental context."
+lut_path: null
+palette: "warm skin tones, soft background separation, natural color"
+film_stock: "ARRI Alexa, documentary LUT"
+lighting_model: "window key, practical fill, 3-point minimal"
+camera_grammar:
+  lens_default: "85mm"
+  motion_default: "static locked-off"
+  grade: "natural contrast, lifted blacks, skin-tone protection"
+audio_profile:
+  ambient: "room tone, environmental context"
+  sfx: "minimal"
+notes: "Subject should occupy 60% of frame. Background should be identifiable but not distracting. Eye-line slightly off-center."

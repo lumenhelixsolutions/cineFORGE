@@ -1,0 +1,13 @@
+name: "Vintage 16mm"
+description: "Grain, gate weave, warm highlights, slight halation"
+lut_path: null
+palette: "warm amber, faded greens, crushed reds"
+film_stock: "Kodak Ektachrome 7242"
+lighting_model: "practical tungsten, no HMI"
+camera_grammar:
+  lens_default: "25mm"
+  motion_default: "slight handheld wobble"
+  grade: "heavy grain, gate weave, halation on highlights"
+audio_profile:
+  ambient: "tape hiss, room tone"
+  sfx: "analog warmth, slight wow/flutter"

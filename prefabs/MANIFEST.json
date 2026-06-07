@@ -1,0 +1,243 @@
+{
+  "version": "1.0.0",
+  "prefabs": [
+    {
+      "id": "archival_timeline",
+      "name": "Archival Timeline",
+      "category": "grammar",
+      "description": "Historical narrative with period-appropriate visuals. Chronological.",
+      "path": "grammars/archival_timeline.yaml"
+    },
+    {
+      "id": "cogvideo_shortform",
+      "name": "CogVideoX Shortform",
+      "category": "grammar",
+      "description": "Short punchy clips optimized for CogVideoX 4-6s limit. High impact per frame.",
+      "path": "grammars/cogvideo_shortform.yaml"
+    },
+    {
+      "id": "data_story",
+      "name": "Data Story",
+      "category": "grammar",
+      "description": "Narrative driven by data visualization. Chart reveals, trend animations.",
+      "path": "grammars/data_story.yaml"
+    },
+    {
+      "id": "explainer_short",
+      "name": "Explainer Short",
+      "category": "grammar",
+      "description": "Hook → context → mechanism → payoff → CTA (5 shots)",
+      "path": "grammars/explainer_short.yaml"
+    },
+    {
+      "id": "explainer_step_by_step",
+      "name": "Explainer Step-by-Step",
+      "category": "grammar",
+      "description": "Educational content with clear concept hierarchy. 5-7 shots.",
+      "path": "grammars/explainer_step_by_step.yaml"
+    },
+    {
+      "id": "framepack_longform",
+      "name": "FramePack Longform",
+      "category": "grammar",
+      "description": "Single continuous scene evolving over time. Designed for FramePack's next-frame prediction.",
+      "path": "grammars/framepack_longform.yaml"
+    },
+    {
+      "id": "interview_profile",
+      "name": "Interview Profile",
+      "category": "grammar",
+      "description": "Single-subject documentary interview with B-roll cutaways.",
+      "path": "grammars/interview_profile.yaml"
+    },
+    {
+      "id": "mini_doc",
+      "name": "Mini Documentary",
+      "category": "grammar",
+      "description": "Establishing → character_intro → conflict → revelation → resolution",
+      "path": "grammars/mini_doc.yaml"
+    },
+    {
+      "id": "narrative_3_act",
+      "name": "Narrative 3-Act",
+      "category": "grammar",
+      "description": "Generic 3-act, beat-flexible",
+      "path": "grammars/narrative_3_act.yaml"
+    },
+    {
+      "id": "news_breaking",
+      "name": "News Breaking",
+      "category": "grammar",
+      "description": "Inverted pyramid for rapid news delivery. 5 micro-shots under 30 seconds.",
+      "path": "grammars/news_breaking.yaml"
+    },
+    {
+      "id": "post_process_pipeline",
+      "name": "Post-Process Pipeline",
+      "category": "grammar",
+      "description": "Render at low res/fast, then interpolate + upscale. Cost-optimized quality.",
+      "path": "grammars/post_process_pipeline.yaml"
+    },
+    {
+      "id": "research_walkthrough",
+      "name": "Research Walkthrough",
+      "category": "grammar",
+      "description": "Title card → equation_reveal → diagram → derivation → implication → outro",
+      "path": "grammars/research_walkthrough.yaml"
+    },
+    {
+      "id": "archival_sepia",
+      "name": "Archival Sepia",
+      "category": "style_pack",
+      "description": "For historical / research narratives",
+      "path": "style_packs/archival_sepia.yaml"
+    },
+    {
+      "id": "cinematic_noir",
+      "name": "Cinematic Noir",
+      "category": "style_pack",
+      "description": "High contrast, low-key, 35mm anamorphic feel",
+      "path": "style_packs/cinematic_noir.yaml"
+    },
+    {
+      "id": "data_visualization",
+      "name": "Data Visualization",
+      "category": "style_pack",
+      "description": "Charts, graphs, and animated data. Flat design, high readability, color-coded.",
+      "path": "style_packs/data_visualization.yaml"
+    },
+    {
+      "id": "documentary_natural",
+      "name": "Documentary Natural",
+      "category": "style_pack",
+      "description": "Handheld, available light, neutral grade",
+      "path": "style_packs/documentary_natural.yaml"
+    },
+    {
+      "id": "framepack_cinematic",
+      "name": "FramePack Cinematic",
+      "category": "style_pack",
+      "description": "Optimized for FramePack-F1 long-form generation. Emphasizes temporal consistency and motion clarity.",
+      "path": "style_packs/framepack_cinematic.yaml"
+    },
+    {
+      "id": "interview_natural",
+      "name": "Interview Natural",
+      "category": "style_pack",
+      "description": "Documentary interview style. Subject-focused, shallow depth, environmental context.",
+      "path": "style_packs/interview_natural.yaml"
+    },
+    {
+      "id": "kawaii_pastel",
+      "name": "Kawaii Pastel",
+      "category": "style_pack",
+      "description": "Watercolor textures, soft pastels, 24fps shutter blur",
+      "path": "style_packs/kawaii_pastel.yaml"
+    },
+    {
+      "id": "low_vram_documentary",
+      "name": "Low-VRAM Documentary",
+      "category": "style_pack",
+      "description": "For CogVideoX-2B/5B and 6GB GPUs. Handheld feel, natural light, short clips.",
+      "path": "style_packs/low_vram_documentary.yaml"
+    },
+    {
+      "id": "news_fast",
+      "name": "News Fast",
+      "category": "style_pack",
+      "description": "Rapid-turnaround news style. Tight framing, on-screen text friendly, high contrast for readability.",
+      "path": "style_packs/news_fast.yaml"
+    },
+    {
+      "id": "realesrgan_sharp",
+      "name": "Real-ESRGAN Sharp",
+      "category": "style_pack",
+      "description": "For super-res upscaling pipeline. Emphasizes fine detail and texture.",
+      "path": "style_packs/realesrgan_sharp.yaml"
+    },
+    {
+      "id": "research_clean",
+      "name": "Research Clean",
+      "category": "style_pack",
+      "description": "Academic presentation style. Neutral backgrounds, equation-friendly, minimal distraction.",
+      "path": "style_packs/research_clean.yaml"
+    },
+    {
+      "id": "rife_motion",
+      "name": "RIFE Motion",
+      "category": "style_pack",
+      "description": "Optimized for RIFE-interpolated output. High motion, fluid action sequences.",
+      "path": "style_packs/rife_motion.yaml"
+    },
+    {
+      "id": "vintage_16mm",
+      "name": "Vintage 16mm",
+      "category": "style_pack",
+      "description": "Grain, gate weave, warm highlights, slight halation",
+      "path": "style_packs/vintage_16mm.yaml"
+    },
+    {
+      "id": "whiteboard_explainer",
+      "name": "Whiteboard Explainer",
+      "category": "style_pack",
+      "description": "Flat, animated, NotebookLM-classic feel",
+      "path": "style_packs/whiteboard_explainer.yaml"
+    },
+    {
+      "id": "cross_dissolve_300ms",
+      "name": "Cross Dissolve 300Ms",
+      "category": "transition",
+      "description": "",
+      "path": "transitions/cross_dissolve_300ms.py"
+    },
+    {
+      "id": "dip_to_black",
+      "name": "Dip To Black",
+      "category": "transition",
+      "description": "",
+      "path": "transitions/dip_to_black.py"
+    },
+    {
+      "id": "flash_white_3frame",
+      "name": "Flash White 3Frame",
+      "category": "transition",
+      "description": "",
+      "path": "transitions/flash_white_3frame.py"
+    },
+    {
+      "id": "frame_bridge_handoff",
+      "name": "Frame Bridge Handoff",
+      "category": "transition",
+      "description": "",
+      "path": "transitions/frame_bridge_handoff.py"
+    },
+    {
+      "id": "hard_cut",
+      "name": "Hard Cut",
+      "category": "transition",
+      "description": "",
+      "path": "transitions/hard_cut.py"
+    },
+    {
+      "id": "match_cut",
+      "name": "Match Cut",
+      "category": "transition",
+      "description": "",
+      "path": "transitions/match_cut.py"
+    },
+    {
+      "id": "whip_pan",
+      "name": "Whip Pan",
+      "category": "transition",
+      "description": "",
+      "path": "transitions/whip_pan.py"
+    },
+    {
+      "id": "neutral",
+      "name": "Neutral",
+      "category": "lut",
+      "description": "",
+      "path": "luts/neutral.cube"
+    }
+  ]
+}

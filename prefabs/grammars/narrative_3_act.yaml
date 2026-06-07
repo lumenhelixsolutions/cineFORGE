@@ -1,0 +1,21 @@
+name: "Narrative 3-Act"
+description: "Generic 3-act, beat-flexible"
+shots:
+  - type: opening
+    duration: 6
+    tier: hero
+  - type: inciting_incident
+    duration: 6
+    tier: hero
+  - type: rising_action
+    duration: 8
+    tier: standard
+  - type: climax
+    duration: 8
+    tier: hero
+  - type: resolution
+    duration: 6
+    tier: standard
+  - type: closing
+    duration: 4
+    tier: title

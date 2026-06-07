@@ -1,0 +1,27 @@
+name: "Explainer Step-by-Step"
+description: "Educational content with clear concept hierarchy. 5-7 shots."
+shots:
+  - type: title_card
+    duration: 4
+    tier: title
+    notes: "Concept name + visual icon. Clean background."
+  - type: context
+    duration: 6
+    tier: standard
+    notes: "Why this matters. Real-world problem."
+  - type: mechanism_reveal
+    duration: 8
+    tier: hero
+    notes: "Core concept visualization. Diagram or animation space."
+  - type: example_demo
+    duration: 6
+    tier: standard
+    notes: "Concrete example in action."
+  - type: implication
+    duration: 6
+    tier: standard
+    notes: "So what? Broader impact or application."
+  - type: cta
+    duration: 4
+    tier: title
+    notes: "Next step, resource, or subscribe prompt."

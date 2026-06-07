@@ -1,0 +1,27 @@
+name: "Data Story"
+description: "Narrative driven by data visualization. Chart reveals, trend animations."
+shots:
+  - type: question_hook
+    duration: 6
+    tier: hero
+    notes: "Provocative question + initial data hint."
+  - type: baseline_data
+    duration: 6
+    tier: standard
+    notes: "Starting point chart. Clear axes, readable labels."
+  - type: trend_reveal
+    duration: 8
+    tier: hero
+    notes: "Animation of change over time. Motion = insight."
+  - type: outlier_spotlight
+    duration: 6
+    tier: standard
+    notes: "Unexpected data point. Zoom + annotation space."
+  - type: implication
+    duration: 6
+    tier: standard
+    notes: "What this means. Human-scale consequence."
+  - type: source_credits
+    duration: 4
+    tier: title
+    notes: "Data attribution + methodology note."

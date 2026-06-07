@@ -57,6 +57,7 @@ def backend_server() -> Generator[str, None, None]:
         "CINEFORGE_HOST": "127.0.0.1",
         "CINEFORGE_DATA_DIR": data_dir,
         "CINEFORGE_DATABASE_URL": f"sqlite+aiosqlite:///{db_path}",
+        "CINEFORGE_MOCK_VIDEO": "true",
     }
     old_env = os.environ.copy()
     os.environ.update(env_overrides)
@@ -204,7 +205,7 @@ def mock_video_adapter(
         async def generate(self, req: VideoGenRequest) -> VideoGenResult:
             await asyncio.sleep(0.5)
             out = Path(tempfile.mktemp(suffix=".mp4"))
-            from tests.e2e._test_video import generate_test_mp4
+            from tests.e2e.test_video import generate_test_mp4
 
             generate_test_mp4(out, duration_sec=req.duration_sec)
             return VideoGenResult(

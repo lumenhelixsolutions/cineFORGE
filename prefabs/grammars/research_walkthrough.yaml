@@ -1,0 +1,21 @@
+name: "Research Walkthrough"
+description: "Title card → equation_reveal → diagram → derivation → implication → outro"
+shots:
+  - type: title_card
+    duration: 4
+    tier: title
+  - type: equation_reveal
+    duration: 6
+    tier: standard
+  - type: diagram
+    duration: 8
+    tier: standard
+  - type: derivation
+    duration: 8
+    tier: hero
+  - type: implication
+    duration: 6
+    tier: standard
+  - type: outro
+    duration: 4
+    tier: title

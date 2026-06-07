@@ -1,0 +1,23 @@
+name: "News Breaking"
+description: "Inverted pyramid for rapid news delivery. 5 micro-shots under 30 seconds."
+shots:
+  - type: hook
+    duration: 4
+    tier: hero
+    notes: "Immediate visual + location identifier. Tight, urgent."
+  - type: context
+    duration: 4
+    tier: standard
+    notes: "Wide establishing + on-screen text space."
+  - type: detail
+    duration: 4
+    tier: standard
+    notes: "Evidence shot: document, object, witness."
+  - type: impact
+    duration: 4
+    tier: hero
+    notes: "Human reaction or consequence. Emotional anchor."
+  - type: outro
+    duration: 4
+    tier: title
+    notes: "Source attribution + call to follow."

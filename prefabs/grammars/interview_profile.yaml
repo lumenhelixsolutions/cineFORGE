@@ -1,0 +1,27 @@
+name: "Interview Profile"
+description: "Single-subject documentary interview with B-roll cutaways."
+shots:
+  - type: establishing
+    duration: 6
+    tier: broll
+    notes: "Location context. Where does this person live/work?"
+  - type: intro_portrait
+    duration: 6
+    tier: hero
+    notes: "Medium close-up subject introduction. Name/title space."
+  - type: interview_main
+    duration: 8
+    tier: hero
+    notes: "Primary talking head. Static 85mm. Emotional core."
+  - type: broll_cutaway
+    duration: 6
+    tier: broll
+    notes: "Visual evidence of what subject describes."
+  - type: reaction_close
+    duration: 6
+    tier: standard
+    notes: "Emotional beat. Pause, reflection."
+  - type: outro_wide
+    duration: 6
+    tier: broll
+    notes: "Subject in environment. Walk away or continue working."

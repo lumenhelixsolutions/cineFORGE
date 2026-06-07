@@ -894,6 +894,52 @@ async def list_transitions() -> list[dict[str, Any]]:
     return app_ctx.prefabs.list_transitions()
 
 
+BUNDLED_PREFABS_DIR = Path(__file__).parent.parent / "prefabs"
+
+
+@app.get("/api/prefabs")
+async def get_prefabs_manifest() -> dict[str, Any]:
+    """Return the bundled prefabs manifest."""
+    manifest_path = BUNDLED_PREFABS_DIR / "MANIFEST.json"
+    if not manifest_path.exists():
+        raise HTTPException(status_code=404, detail="Manifest not found")
+    data: dict[str, Any] = json.loads(manifest_path.read_text(encoding="utf-8"))
+    return data
+
+
+@app.get("/api/prefabs/{category}/{prefab_id}")
+async def get_prefab(category: str, prefab_id: str) -> Response:
+    """Return a specific prefab file by category and id."""
+    manifest_path = BUNDLED_PREFABS_DIR / "MANIFEST.json"
+    if not manifest_path.exists():
+        raise HTTPException(status_code=404, detail="Manifest not found")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    prefab = next(
+        (
+            p
+            for p in manifest.get("prefabs", [])
+            if p["category"] == category and p["id"] == prefab_id
+        ),
+        None,
+    )
+    if not prefab:
+        raise HTTPException(status_code=404, detail="Prefab not found")
+    file_path = BUNDLED_PREFABS_DIR / prefab["path"]
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Prefab file not found")
+    content = file_path.read_text(encoding="utf-8")
+    suffix = file_path.suffix
+    if suffix == ".json":
+        media_type = "application/json"
+    elif suffix in (".yaml", ".yml"):
+        media_type = "text/yaml"
+    elif suffix == ".py":
+        media_type = "text/x-python"
+    else:
+        media_type = "text/plain"
+    return Response(content=content, media_type=media_type)
+
+
 # ═══════════════════════════════════════════════════════════════
 # StackBuilder — intelligent profile recommendation
 # ═══════════════════════════════════════════════════════════════

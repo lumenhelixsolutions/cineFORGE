@@ -1,0 +1,14 @@
+name: "News Fast"
+description: "Rapid-turnaround news style. Tight framing, on-screen text friendly, high contrast for readability."
+lut_path: null
+palette: "high contrast, saturated primaries, white text safe zones"
+film_stock: "broadcast ENG, 60i feel"
+lighting_model: "hard key, minimal fill, maximum clarity"
+camera_grammar:
+  lens_default: "24mm"
+  motion_default: "snap zoom, whip pan"
+  grade: "crushed blacks, boosted mids, broadcast legal"
+audio_profile:
+  ambient: "clean studio silence"
+  sfx: "news sting, lower third chime"
+notes: "Designed for 4-6s micro-shots. Text overlays will be added in post. Avoid busy backgrounds."
