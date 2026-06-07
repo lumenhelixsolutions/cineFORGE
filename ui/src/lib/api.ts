@@ -123,4 +123,16 @@ export const api = {
     download: (clipId: string) =>
       `${BASE_URL}/api/broll/${clipId}/download`,
   },
+  exports: {
+    list: (projectId: string) => request(`/api/projects/${projectId}/exports`),
+    create: (projectId: string, type: string) =>
+      request(`/api/projects/${projectId}/export`, {
+        method: "POST",
+        body: JSON.stringify({ type }),
+      }),
+    get: (jobId: string) => request(`/api/exports/${jobId}`),
+    delete: (jobId: string) =>
+      request(`/api/exports/${jobId}`, { method: "DELETE" }),
+    downloadUrl: (jobId: string) => `${BASE_URL}/api/exports/${jobId}/download`,
+  },
 };
