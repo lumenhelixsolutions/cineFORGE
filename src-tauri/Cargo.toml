@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "CineForge — cinematic video generation desktop app"
 authors = ["Christopher Gordon Phillips <info@lumenhelix.com>"]
 license = "MIT"
-repository = "https://github.com/lumenhelix/cineforge"
+repository = "https://github.com/lumenhelixsolutions/cineFORGE"
 edition = "2021"
 rust-version = "1.70"
 
