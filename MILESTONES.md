@@ -105,10 +105,154 @@
 
 ---
 
-## Remaining for v1.0 (Future)
+## Future Evolution Roadmap: Milestones 6–15 (Towards v1.0)
 
-- E2E Playwright test (scaffold exists, not yet implemented)
-- Code-signing for Windows/macOS installers
-- Real Sora/Kling/Luma API implementations (currently stubs)
-- Cloud sync (S3-compatible)
-- Public beta landing page
+---
+
+## ⏳ Milestone 6: Playwright E2E Testing Framework & Pipeline Simulation
+
+**Goal:** Establish absolute pipeline reliability by building out a complete end-to-end simulation framework.
+
+| # | Task | Status |
+|---|------|--------|
+| 6.1 | Implement complete Mock Adapter Test Harness within `tests/` | ⏳ Pending |
+| 6.2 | Write Playwright test suites under `ui/tests/` for typical user flows | ⏳ Pending |
+| 6.3 | Validate cross-route persistence and keyboard shortcuts in SolidJS UI | ⏳ Pending |
+| 6.4 | Integrate E2E test runs with `.github/workflows/ci.yml` in headless mode | ⏳ Pending |
+
+**Verification:** `npm run test:e2e` runs successfully in CI with zero-flake.
+
+---
+
+## ⏳ Milestone 7: Advanced Multi-Track Audio Mixing & Ducking Engine
+
+**Goal:** Enable cinematic audio output by moving from single-track narration overlay to professional multi-track mixing with automatic volume ducking.
+
+| # | Task | Status |
+|---|------|--------|
+| 7.1 | Refactor `backend/postprocess/stitcher.py` to support concurrent audio streams | ⏳ Pending |
+| 7.2 | Implement dynamic sidechain ducking filter in FFmpeg for background music | ⏳ Pending |
+| 7.3 | Add per-project Audio Inspector UI for uploading beds and adjusting levels | ⏳ Pending |
+| 7.4 | Write unit tests verifying overlap alignments and audio track synchronization | ⏳ Pending |
+
+**Verification:** Mixed output video contains layered audio with flawless voice-over ducking curves.
+
+---
+
+## ⏳ Milestone 8: Native Cloud Video Adapters (Sora 2, Kling 3.0, Luma Dream Machine)
+
+**Goal:** Promote existing API stubs to fully working, production-ready cloud connectors.
+
+| # | Task | Status |
+|---|------|--------|
+| 8.1 | Replace stubs in `backend/adapters/` with real authenticated clients | ⏳ Pending |
+| 8.2 | Design asynchronous SQLite progress polling manager for long-running video generation | ⏳ Pending |
+| 8.3 | Build secure local credential handling loaded from `key-vault.js` / env | ⏳ Pending |
+| 8.4 | Integrate rate-limit retry logic with exponential backoff and error handlers | ⏳ Pending |
+
+**Verification:** Integration tests mock success/error API responses; credentials validate and fetch renders successfully.
+
+---
+
+## ⏳ Milestone 9: Deep Local Inference Optimization (CUDA & DirectML Integration)
+
+**Goal:** Maximize performance of local open-weights generators on consumer-tier Windows hardware.
+
+| # | Task | Status |
+|---|------|--------|
+| 9.1 | Integrate system hardware profiling in `backend/preflight.py` | ⏳ Pending |
+| 9.2 | Support 4-bit and 8-bit quantization options for local models (Wan 2.2, LTX-Video) | ⏳ Pending |
+| 9.3 | Wire GPU-accelerated RIFE (interpolation) and Real-ESRGAN (super-res) post-processing | ⏳ Pending |
+| 9.4 | Implement dynamic memory-purging supervisor to prevent Out-Of-Memory (OOM) errors | ⏳ Pending |
+
+**Verification:** Running local profile offloads weights, runs under 8GB VRAM limit, and completes post-processing.
+
+---
+
+## ⏳ Milestone 10: Multi-Project Shared Portfolio Integration (lookBOOK & NOTEtoolsLM)
+
+**Goal:** Establish CineForge as the ultimate rendering destination for the wider AI tool portfolio.
+
+| # | Task | Status |
+|---|------|--------|
+| 10.1 | Create an ingest wrapper in `backend/ingest/` for lookBOOK shot JSON files | ⏳ Pending |
+| 10.2 | Build treatment parser that maps NOTEtoolsLM briefing/explainer files to outlines | ⏳ Pending |
+| 10.3 | Implement unified Pydantic validation schemas for cross-tool data contracts | ⏳ Pending |
+| 10.4 | Add SolidJS UI import zones / drag handles for lookBOOK and NOTEtoolsLM payloads | ⏳ Pending |
+
+**Verification:** Ingesting lookBOOK JSON or NOTEtoolsLM artifact creates a perfectly structured CineForge project.
+
+---
+
+## ⏳ Milestone 11: Enterprise Security, Code-Signing & Production Installers
+
+**Goal:** Deliver secure, signed binaries that install seamlessly on Windows and macOS without gatekeeper errors.
+
+| # | Task | Status |
+|---|------|--------|
+| 11.1 | Configure Windows Authenticode EV Code-Signing in `tauri.conf.json` | ⏳ Pending |
+| 11.2 | Configure Apple Developer ID code-signing and notarization via CLI tools | ⏳ Pending |
+| 11.3 | Parameterize certificates and private key passwords in GitHub Secrets | ⏳ Pending |
+| 11.4 | Refactor `.github/workflows/release.yml` to trigger notarized release builds on tags | ⏳ Pending |
+
+**Verification:** Released binaries (.msi, .dmg) sign and notarize successfully in CI with zero publisher warnings.
+
+---
+
+## ⏳ Milestone 12: Distributed Cloud Sync & S3-Compatible Asset Storage
+
+**Goal:** Enable creators to back up their high-volume assets and sync project states to cloud object storage.
+
+| # | Task | Status |
+|---|------|--------|
+| 12.1 | Implement async remote file sync engine for chunked uploads to S3-compatible storage | ⏳ Pending |
+| 12.2 | Build delta-sync mechanism using file hashes to skip redundant video-shot uploads | ⏳ Pending |
+| 12.3 | Design SolidJS UI Options pane for custom endpoints, credentials, and schedules | ⏳ Pending |
+| 12.4 | Implement local credential encryption before database persistence | ⏳ Pending |
+
+**Verification:** Project backups sync to specific S3 buckets successfully and can be fully restored to clean workspaces.
+
+---
+
+## ⏳ Milestone 13: Collaborative Real-Time Editing & Multi-Seat State Sync
+
+**Goal:** Move from single-user desktop software to a collaborative hub for creative teams.
+
+| # | Task | Status |
+|---|------|--------|
+| 13.1 | Design a lightweight WebRTC-based local sync engine / WebSocket sync server | ⏳ Pending |
+| 13.2 | Implement presence cursors and highlights showing concurrent editor actions | ⏳ Pending |
+| 13.3 | Build a lease-based locking mechanism in SQLite to prevent edit-conflicts | ⏳ Pending |
+| 13.4 | Add visual connection status indicator and active participant drawer in UI | ⏳ Pending |
+
+**Verification:** Concurrent clients sync timeline modifications instantly and enforce active write lockouts.
+
+---
+
+## ⏳ Milestone 14: Dynamic Visual Brand Assets & Marketing Landing Page
+
+**Goal:** Establish a compelling public presence with an interactive, beautiful product landing page and embedded media assets.
+
+| # | Task | Status |
+|---|------|--------|
+| 14.1 | Author a fully responsive, dark-themed static website inside the `landing/` directory | ⏳ Pending |
+| 14.2 | Create mock interactive storyboard players for users to "test" editing in real-time | ⏳ Pending |
+| 14.3 | Generate a library of high-fidelity showcase videos generated entirely via CineForge | ⏳ Pending |
+| 14.4 | Automate static compiler deployment to GitHub Pages or Vercel on master-branch pushes | ⏳ Pending |
+
+**Verification:** landing page displays fluid animations, high-fidelity demos, and scores >95 on Lighthouse audits.
+
+---
+
+## ⏳ Milestone 15: Public Beta Release, Telemetry Analysis & v1.0 Launch
+
+**Goal:** Execute the final public beta test, collect metrics, polish outstanding friction points, and officially launch v1.0.
+
+| # | Task | Status |
+|---|------|--------|
+| 15.1 | Expand `backend/telemetry.py` to aggregate anonymized render success rates and logs | ⏳ Pending |
+| 15.2 | Establish a monitoring dashboard to visualize active beta metrics and API errors | ⏳ Pending |
+| 15.3 | Perform intensive performance tuning of the SQLite WAL mode under high load | ⏳ Pending |
+| 15.4 | Author final v1.0 release announcement, user manuals, and detailed API catalogs | ⏳ Pending |
+
+**Verification:** RC builds exhibit zero critical bugs; telemetry monitors active installations; CineForge v1.0 is published.

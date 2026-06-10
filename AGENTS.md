@@ -10,6 +10,15 @@ CineForge is a local-first desktop application that turns source documents (PDFs
 - **Video**: Multi-adapter pipeline with capability-aware routing
 - **Editing**: MoviePy 2.x + FFmpeg
 
+## Optional UI integrations
+
+| Tool | When | Doc |
+|------|------|-----|
+| assistant-ui | Chat/coach surfaces in React views | `D:\projects\docs\CHATBOT_STACK.md` |
+| magic-mcp | Opt-in fast UI component generation | `D:\projects\docs\MAGIC_MCP.md` |
+
+Not required for Tauri/SolidJS core. Enable per-developer in local MCP config.
+
 ## Build & Run
 
 ### Prerequisites
