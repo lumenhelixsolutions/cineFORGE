@@ -15,30 +15,55 @@ T = TypeVar("T")
 
 
 class _LazyAdapter(Generic[T]):
-    """Wraps an adapter class to defer instantiation until first use."""
+    """Wraps an adapter class or instance to defer/provide instantiation."""
 
-    def __init__(self, cls: type[T]) -> None:
-        self._cls = cls
+    def __init__(self, provider: type[T] | T) -> None:
+        self._provider = provider
         self._instance: T | None = None
 
     def get(self) -> T:
         if self._instance is None:
-            self._instance = self._cls()
+            if isinstance(self._provider, type):
+                self._instance = self._provider()
+            else:
+                self._instance = self._provider # type: ignore
         return self._instance
 
 
 class AdapterRegistry:
     """Discovers and lazily instantiates adapters via Python entry points."""
 
-    def __init__(self) -> None:
+    def __init__(self, test_mode: bool = False) -> None:
         self._video: dict[str, _LazyAdapter[VideoModel]] = {}
         self._llm: dict[str, _LazyAdapter[LLMDirector]] = {}
         self._embedder: dict[str, _LazyAdapter[Embedder]] = {}
         self._tts: dict[str, _LazyAdapter[TTSProvider]] = {}
         self._refimg: dict[str, _LazyAdapter[ReferenceImageGenerator]] = {}
-        self._discover()
+
+        if test_mode:
+            logger.info("AdapterRegistry: Initialized in TEST MODE. No automatic discovery.")
+        else:
+            self._discover()
+
+    def set_mock_adapters(self, video: dict[str, VideoModel] | None = None, 
+                          llm: dict[str, LLMDirector] | None = None,
+                          embedder: dict[str, Embedder] | None = None,
+                          tts: dict[str, TTSProvider] | None = None,
+                          refimg: dict[str, ReferenceImageGenerator] | None = None) -> None:
+        """Manually inject mock adapters for testing."""
+        if video:
+            for k, v in video.items(): self._video[k] = _LazyAdapter(v)
+        if llm:
+            for k, v in llm.items(): self._llm[k] = _LazyAdapter(v)
+        if embedder:
+            for k, v in embedder.items(): self._embedder[k] = _LazyAdapter(v)
+        if tts:
+            for k, v in tts.items(): self._tts[k] = _LazyAdapter(v)
+        if refimg:
+            for k, v in refimg.items(): self._refimg[k] = _LazyAdapter(v)
 
     def _discover(self) -> None:
+
         eps = entry_points()
         for ep in eps.select(group="cineforge.adapters.video"):
             try:
