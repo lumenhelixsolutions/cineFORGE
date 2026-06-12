@@ -1,6 +1,7 @@
 # CineForge
 
 [![CI](https://github.com/lumenhelixsolutions/cineFORGE/actions/workflows/ci.yml/badge.svg)](https://github.com/lumenhelixsolutions/cineFORGE/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/lumenhelixsolutions/cineFORGE?include_prereleases&label=release)](https://github.com/lumenhelixsolutions/cineFORGE/releases)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 

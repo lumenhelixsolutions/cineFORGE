@@ -30,6 +30,7 @@ from backend.models.project import init_db, Project, Shot, SourceDoc, Treatment,
 from backend.adapters.registry import get_registry
 from backend.adapters.protocols import CapabilityError
 from backend.ingest.pipeline import ingest_document
+from backend.ingest.lookbook import build_treatment_from_lookbook, convert_lookbook_to_shots, parse_lookbook_shot_graph
 from backend.director.treatment import generate_treatment
 from backend.director.storyboard import generate_storyboard
 from backend.promptforge.template import PromptForge
@@ -597,6 +598,71 @@ class GenerateStoryboardRequest(BaseModel):
     llm_provider: str | None = Field(default=None, max_length=100)
     treatment_id: str | None = Field(default=None, max_length=100)
     topic: str = Field(default="documentary", max_length=200)
+
+
+class IngestLookbookRequest(BaseModel):
+    shot_graph: dict[str, Any]
+    replace_existing_shots: bool = Field(default=True)
+
+
+@app.post("/projects/{project_id}/ingest/lookbook")
+async def ingest_lookbook_shots(
+    project_id: str,
+    req: IngestLookbookRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Import lookBOOK shot_graph.json as CineForge storyboard shots."""
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    proj = result.scalar_one_or_none()
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    try:
+        parse_lookbook_shot_graph(req.shot_graph)
+        shots_data = convert_lookbook_to_shots(req.shot_graph)
+        treatment_json = build_treatment_from_lookbook(req.shot_graph)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    if req.replace_existing_shots:
+        existing = await db.execute(select(Shot).where(Shot.project_id == project_id))
+        for shot in existing.scalars().all():
+            await db.delete(shot)
+
+    treatment = Treatment(
+        project_id=project_id,
+        json=treatment_json,
+        llm_model="lookbook.import",
+        token_usage={"input_tokens": 0, "output_tokens": 0, "cached_input_tokens": 0},
+    )
+    db.add(treatment)
+    await db.flush()
+
+    for s in shots_data:
+        shot = Shot(
+            project_id=project_id,
+            order_index=s["order_index"],
+            duration_sec=s["duration_sec"],
+            tier=s.get("tier", "standard"),
+            continuity=s.get("continuity", {}),
+            prompt_text=s.get("prompt_text", ""),
+            prompt_hash=s.get("prompt_hash", ""),
+            bridge_strategy=s.get("bridge_strategy", "hard_cut"),
+            preferred_bridge=s.get("preferred_bridge", "hard_cut"),
+            ref_image_paths=s.get("ref_image_paths", []),
+            narration=s.get("narration"),
+            transition_in=s.get("transition_in", "hard_cut"),
+            status="draft",
+        )
+        db.add(shot)
+
+    await db.commit()
+    return {
+        "shot_count": len(shots_data),
+        "treatment_id": treatment.id,
+        "source": "lookbook",
+        "shots": shots_data,
+    }
 
 
 @app.post("/projects/{project_id}/storyboard")

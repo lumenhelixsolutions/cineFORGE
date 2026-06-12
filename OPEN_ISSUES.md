@@ -1,17 +1,22 @@
 # Open Issues
 
-## v0.1 blockers
+## Public beta (v0.2.0)
 
-- [ ] #1: Add macOS code-signing configuration to tauri.conf.json
-- [ ] #2: Verify FFmpeg LGPL build detection on Windows
-- [ ] #3: Add Playwright E2E test for full mocked pipeline
-- [ ] #4: Validate Wan2GP adapter against actual localhost server
-- [ ] #5: Add disk-space pre-flight check before render jobs
+- [ ] #1: Purchase EV code-signing cert (Windows) and Apple Developer ID (macOS) — see `docs/PUBLIC_BETA_RELEASE.md`
+- [ ] #2: Tag `v0.2.0` and publish GitHub Release draft from CI artifacts
+- [ ] #3: Enable GitHub Pages + DNS for `cineforge.app`
+- [ ] #4: Live-key validation for Kling 3.0 and Luma adapters — see `docs/CLOUD_ADAPTERS.md`
+- [ ] #5: Confirm Sora 2 API status; fallback routing documented
 
-## v0.2 candidates
+## Resolved in v0.2.0
 
-- [ ] #6: Multi-track audio mixing (ducking, music beds, multi-voice)
-- [ ] #7: Additional video adapters (Sora 2 native, Kling 2.5 native)
-- [ ] #8: Mobile / web Tauri target
-- [ ] #9: Collaborative editing (not planned — listed for completeness)
-- [ ] #10: Advanced color grading LUT application in stitcher
+- [x] Disk-space pre-flight check before render jobs
+- [x] Playwright E2E test for mocked pipeline
+- [x] lookBOOK shot graph ingest bridge
+- [x] Landing page + Pages workflow
+
+## v0.3 candidates
+
+- [ ] Collaborative editing / cloud sync (S3)
+- [ ] Advanced color grading LUT library
+- [ ] UI import drop-zone for lookBOOK / NOTEtoolsLM payloads

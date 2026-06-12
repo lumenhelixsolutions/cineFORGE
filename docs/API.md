@@ -187,6 +187,24 @@ Export a project as a .cineforge bundle.
 - **200** — Successful Response
 - **422** — Validation Error
 
+## POST /projects/{project_id}/ingest/lookbook
+**Summary:** Import lookBOOK shot graph as storyboard shots
+
+Accepts `lookbook.shot_graph.v0.3` JSON (from `analysis/shot_graph.json` or `shot_graph_vision.json`). Creates a treatment stub and persists mapped shots without LLM generation.
+
+### Request Body (`application/json`)
+```json
+{
+  "shot_graph": { "schema": "lookbook.shot_graph.v0.3", "shots": [] },
+  "replace_existing_shots": true
+}
+```
+
+### Responses
+- **200** — `{ shot_count, treatment_id, source: "lookbook", shots }`
+- **400** — Invalid or empty shot graph
+- **404** — Project not found
+
 ## POST /projects/{project_id}/storyboard
 **Summary:** Create Storyboard
 ### Parameters
