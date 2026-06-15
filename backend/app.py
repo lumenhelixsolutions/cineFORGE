@@ -30,7 +30,13 @@ from backend.models.project import init_db, Project, Shot, SourceDoc, Treatment,
 from backend.adapters.registry import get_registry
 from backend.adapters.protocols import CapabilityError
 from backend.ingest.pipeline import ingest_document
-from backend.ingest.lookbook import build_treatment_from_lookbook, convert_lookbook_to_shots, parse_lookbook_shot_graph
+from backend.ingest.living_review import build_review_html, build_review_payload
+from backend.ingest.lookbook import (
+    build_treatment_from_lookbook,
+    convert_lookbook_to_shots,
+    parse_lookbook_choreography,
+    parse_lookbook_shot_graph,
+)
 from backend.director.treatment import generate_treatment
 from backend.director.storyboard import generate_storyboard
 from backend.promptforge.template import PromptForge
@@ -602,6 +608,8 @@ class GenerateStoryboardRequest(BaseModel):
 
 class IngestLookbookRequest(BaseModel):
     shot_graph: dict[str, Any]
+    choreography: dict[str, Any] | None = None
+    panels: dict[str, Any] | list[dict[str, Any]] | None = None
     replace_existing_shots: bool = Field(default=True)
 
 
@@ -619,8 +627,15 @@ async def ingest_lookbook_shots(
 
     try:
         parse_lookbook_shot_graph(req.shot_graph)
-        shots_data = convert_lookbook_to_shots(req.shot_graph)
-        treatment_json = build_treatment_from_lookbook(req.shot_graph)
+        choreography = None
+        if req.choreography is not None:
+            choreography = parse_lookbook_choreography(req.choreography)
+        shots_data = convert_lookbook_to_shots(req.shot_graph, choreography=choreography)
+        treatment_json = build_treatment_from_lookbook(
+            req.shot_graph,
+            choreography=choreography,
+            panels=req.panels,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -662,7 +677,37 @@ async def ingest_lookbook_shots(
         "treatment_id": treatment.id,
         "source": "lookbook",
         "shots": shots_data,
+        "choreography": choreography,
+        "panels": req.panels,
     }
+
+
+@app.get("/projects/{project_id}/lookbook/review", response_model=None)
+async def get_lookbook_review(
+    project_id: str,
+    format: str = Query(default="html", pattern="^(html|json)$"),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return living-panels review HTML or JSON from stored lookBOOK choreography."""
+    result = await db.execute(
+        select(Project)
+        .where(Project.id == project_id)
+        .options(selectinload(Project.treatments))
+    )
+    proj = result.scalar_one_or_none()
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    treatment_json: dict[str, Any] | None = None
+    if proj.treatments:
+        latest = max(proj.treatments, key=lambda t: t.created_at)
+        treatment_json = latest.json if isinstance(latest.json, dict) else None
+
+    if format == "json":
+        return build_review_payload(treatment_json, project_name=proj.name)
+
+    html_content = build_review_html(treatment_json, project_name=proj.name)
+    return Response(content=html_content, media_type="text/html; charset=utf-8")
 
 
 @app.post("/projects/{project_id}/storyboard")

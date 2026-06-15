@@ -9,6 +9,7 @@ from typing import Any
 
 
 LOOKBOOK_SCHEMA = "lookbook.shot_graph.v0.3"
+LOOKBOOK_CHOREOGRAPHY_SCHEMA = "lookbook.choreography.v0.1"
 VALID_DURATIONS = (4, 6, 8)
 BRIDGE_MAP = {
     "cut": "hard_cut",
@@ -38,22 +39,71 @@ def _build_prompt(shot: dict[str, Any]) -> str:
     return " ".join(parts).strip()[:2000]
 
 
-def lookbook_shot_to_cineforge(shot: dict[str, Any], order_index: int) -> dict[str, Any]:
+def _choreography_line_by_index(
+    choreography: dict[str, Any] | None,
+    line_index: int | None,
+) -> dict[str, Any] | None:
+    if choreography is None or line_index is None:
+        return None
+    for line in choreography.get("lines", []):
+        if isinstance(line, dict) and line.get("line_index") == line_index:
+            return line
+    return None
+
+
+def _apply_choreography_to_shot(
+    shot: dict[str, Any],
+    continuity: dict[str, Any],
+    narration: str | None,
+    choreography: dict[str, Any] | None,
+) -> str | None:
+    """Map choreography line text to narration or continuity extras."""
+    line_idx = shot.get("choreography_line_index")
+    active_speaker = shot.get("active_speaker")
+    choreo_line = _choreography_line_by_index(choreography, line_idx)
+
+    if choreo_line:
+        cls = str(choreo_line.get("classification", "dialogue")).lower()
+        text = str(choreo_line.get("text", "")).strip()
+        speaker = choreo_line.get("speaker") or active_speaker
+        if cls in ("narration", "caption"):
+            return text or narration
+        if text:
+            continuity["dialogue"] = text
+            if speaker:
+                continuity["active_speaker"] = str(speaker)
+            if line_idx is not None:
+                continuity["choreography_line_index"] = line_idx
+    elif active_speaker:
+        continuity["active_speaker"] = str(active_speaker)
+        if line_idx is not None:
+            continuity["choreography_line_index"] = line_idx
+    return narration
+
+
+def lookbook_shot_to_cineforge(
+    shot: dict[str, Any],
+    order_index: int,
+    *,
+    choreography: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Map one lookBOOK shot dict to CineForge shot persistence shape."""
     prompt = _build_prompt(shot)
     transition = BRIDGE_MAP.get(str(shot.get("transition_in", "cut")).lower(), "hard_cut")
     narration_parts = shot.get("narration") or []
     narration = " ".join(str(n) for n in narration_parts).strip() or None
     characters = [str(c) for c in (shot.get("characters") or [])]
+    continuity: dict[str, Any] = {
+        "characters": characters,
+        "location": f"scene_{shot.get('scene_index', 0)}",
+        "props": [str(p) for p in (shot.get("panels") or [])],
+    }
+    narration = _apply_choreography_to_shot(shot, continuity, narration, choreography)
     return {
         "order_index": order_index,
         "duration_sec": _snap_duration(float(shot.get("duration_seconds", 4))),
         "tier": "hero" if shot.get("type") == "establishing" else "standard",
-        "continuity": {
-            "characters": characters,
-            "location": f"scene_{shot.get('scene_index', 0)}",
-            "props": [str(p) for p in (shot.get("panels") or [])],
-        },
+        "continuity": continuity,
         "prompt_text": prompt,
         "prompt_hash": hashlib.sha256(prompt.encode()).hexdigest()[:16],
         "bridge_strategy": transition,
@@ -89,17 +139,39 @@ def parse_lookbook_shot_graph(payload: dict[str, Any] | str | Path) -> dict[str,
     return data
 
 
-def convert_lookbook_to_shots(payload: dict[str, Any] | str | Path) -> list[dict[str, Any]]:
+def parse_lookbook_choreography(payload: dict[str, Any]) -> dict[str, Any]:
+    """Load and validate a lookBOOK choreography payload."""
+    if not isinstance(payload, dict):
+        raise ValueError("lookBOOK choreography must be a JSON object")
+    lines = payload.get("lines")
+    if not isinstance(lines, list):
+        raise ValueError("lookBOOK choreography must contain a lines array")
+    schema = payload.get("schema") or payload.get("schema_version") or ""
+    if schema and LOOKBOOK_CHOREOGRAPHY_SCHEMA not in str(schema):
+        raise ValueError(f"Unsupported lookBOOK choreography schema: {schema}")
+    return payload
+
+
+def convert_lookbook_to_shots(
+    payload: dict[str, Any] | str | Path,
+    *,
+    choreography: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     """Convert a full lookBOOK shot_graph to CineForge shot dicts."""
     data = parse_lookbook_shot_graph(payload)
     return [
-        lookbook_shot_to_cineforge(shot, idx)
+        lookbook_shot_to_cineforge(shot, idx, choreography=choreography)
         for idx, shot in enumerate(data["shots"])
         if isinstance(shot, dict)
     ]
 
 
-def build_treatment_from_lookbook(payload: dict[str, Any]) -> dict[str, Any]:
+def build_treatment_from_lookbook(
+    payload: dict[str, Any],
+    *,
+    choreography: dict[str, Any] | None = None,
+    panels: list[Any] | None = None,
+) -> dict[str, Any]:
     """Minimal treatment stub so ingested projects have narrative context."""
     data = parse_lookbook_shot_graph(payload)
     beats = []
@@ -111,10 +183,16 @@ def build_treatment_from_lookbook(payload: dict[str, Any]) -> dict[str, Any]:
             "summary": _build_prompt(shot)[:200],
             "duration_sec": _snap_duration(float(shot.get("duration_seconds", 4))),
         })
-    return {
+    treatment: dict[str, Any] = {
         "title": "lookBOOK import",
         "logline": f"Imported {len(beats)} shots from lookBOOK shot graph.",
         "acts": [{"act_number": 1, "beats": beats}],
         "source": "lookbook",
         "schema": data.get("schema") or LOOKBOOK_SCHEMA,
+        "shot_graph": data,
     }
+    if choreography is not None:
+        treatment["choreography"] = choreography
+    if panels is not None:
+        treatment["panels"] = panels
+    return treatment

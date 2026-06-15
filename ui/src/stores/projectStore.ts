@@ -55,10 +55,17 @@ export interface BrollClip {
   created_at: string;
 }
 
+export interface LookbookReview {
+  available: boolean;
+  message?: string;
+  title?: string;
+}
+
 interface StoreState {
   projects: Project[];
   activeProject: Project | null;
   selectedShotId: string | null;
+  lookbookReview: LookbookReview | null;
   loading: boolean;
   error: string | null;
   capabilities: Record<string, any>;
@@ -74,6 +81,7 @@ export const [state, setState] = createStore<StoreState>({
   projects: [],
   activeProject: null,
   selectedShotId: null,
+  lookbookReview: null,
   loading: false,
   error: null,
   capabilities: {},
@@ -378,6 +386,21 @@ export const projectStore = {
     } catch (err: any) {
       setState('error', err.message);
       throw err;
+    }
+  },
+
+  async fetchLookbookReview(projectId: string) {
+    try {
+      const review = await api.lookbook.review(projectId);
+      setState('lookbookReview', review);
+      return review;
+    } catch (err: any) {
+      const fallback: LookbookReview = {
+        available: false,
+        message: 'Living review is unavailable for this project.',
+      };
+      setState('lookbookReview', fallback);
+      return fallback;
     }
   },
 };

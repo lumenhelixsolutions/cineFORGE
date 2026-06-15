@@ -123,6 +123,14 @@ export const api = {
     download: (clipId: string) =>
       `${BASE_URL}/api/broll/${clipId}/download`,
   },
+  lookbook: {
+    review: (projectId: string) =>
+      request<{ available: boolean; message?: string; title?: string }>(
+        `/projects/${projectId}/lookbook/review?format=json`,
+      ),
+    reviewUrl: (projectId: string) =>
+      `${BASE_URL}/projects/${projectId}/lookbook/review?format=html`,
+  },
   exports: {
     list: (projectId: string) => request(`/api/projects/${projectId}/exports`),
     create: (projectId: string, type: string) =>
