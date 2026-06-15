@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "graphs": {
+    "cineforge-render-pipeline": {
+      "description": "lookBOOK ingest → living review → render → stitch → export"
+    }
+  },
+  "profiles": {
+    "preview-chain": {
+      "graph": "cineforge-render-pipeline",
+      "previewMode": true,
+      "description": "Preview-mode render chain with HITL gates"
+    },
+    "dry-run-audit": {
+      "graph": "cineforge-render-pipeline",
+      "previewMode": true,
+      "description": "Plan-only dry run for CI smokes"
+    }
+  }
+}

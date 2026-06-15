@@ -1,0 +1,20 @@
+{
+  "name": "cineforge-render-pipeline",
+  "version": "0.1.0",
+  "entry": "ingest",
+  "nodes": [
+    { "id": "ingest", "kind": "tool", "api": "POST /projects/{id}/ingest/lookbook" },
+    { "id": "approve_storyboard", "kind": "human", "ui": "living-panels-review" },
+    { "id": "render", "kind": "tool", "api": "POST /projects/{id}/render" },
+    { "id": "approve_render", "kind": "human", "ui": "render-approval" },
+    { "id": "stitch", "kind": "tool", "api": "POST /projects/{id}/stitch" },
+    { "id": "export", "kind": "gate", "requires": "master.mp4" }
+  ],
+  "edges": [
+    ["ingest", "approve_storyboard"],
+    ["approve_storyboard", "render"],
+    ["render", "approve_render"],
+    ["approve_render", "stitch"],
+    ["stitch", "export"]
+  ]
+}
