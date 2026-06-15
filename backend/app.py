@@ -196,11 +196,28 @@ async def correlation_id_middleware(
 
 @app.get("/health")
 async def health() -> dict[str, Any]:
+    from backend.local_caption import is_enabled
+
     return {
         "status": "ok",
         "version": "0.1.0",
         "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
+        "local_caption": is_enabled(),
     }
+
+
+class LocalCaptionRequest(BaseModel):
+    image_path: str = Field(max_length=2000)
+    prompt: str | None = Field(default=None, max_length=2000)
+    model: str | None = Field(default=None, max_length=100)
+
+
+@app.post("/local-caption")
+async def local_caption(req: LocalCaptionRequest) -> dict[str, Any]:
+    """Optional Ollama vision caption assist (LOCAL_CAPTION_ENABLED=true)."""
+    from backend.local_caption import caption_image
+
+    return caption_image(req.image_path, prompt=req.prompt, model=req.model)
 
 
 @app.get("/capabilities")
