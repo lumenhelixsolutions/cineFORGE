@@ -1,132 +1,156 @@
-# CineForge
+# cineFORGE
 
-[![CI](https://github.com/lumenhelixsolutions/cineFORGE/actions/workflows/ci.yml/badge.svg)](https://github.com/lumenhelixsolutions/cineFORGE/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/lumenhelixsolutions/cineFORGE?include_prereleases&label=release)](https://github.com/lumenhelixsolutions/cineFORGE/releases)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+<p align="center">
+  <a href="https://lumenhelix.com">
+    <img src="docs/assets/lumenhelix-logo.svg" alt="LumenHelix Solutions" width="180">
+  </a>
+</p>
 
-Turn source documents or outlines into long-form cinematic videos. Own every seam: storyboard, style pack, per-shot prompt, transition, narration, and final cut.
+<h3 align="center">Turn documents into cinematic videos with full creative control</h3>
 
-## What it is
+<p align="center">
+  <a href="https://lumenhelixsolutions.github.io/cineFORGE/">
+    <img src="https://img.shields.io/badge/Launch_Page-cineFORGE-00D4FF?style=flat-square&logo=githubpages&logoColor=white" alt="Launch Page">
+  </a>
+  <a href="https://lumenhelix.com">
+    <img src="https://img.shields.io/badge/Built_by-LumenHelix-7C3AED?style=flat-square" alt="Built by LumenHelix">
+  </a>
+  <img src="https://img.shields.io/badge/license-MIT-8A95A8?style=flat-square" alt="License">
+</p>
 
-CineForge is a local-first desktop application that orchestrates Google Veo 3.1, an LLM director, and FFmpeg-based stitching to produce coherent 30-second to 10-minute cinematic videos from PDFs, Markdown, URLs, or hand-written treatments.
+---
 
-Think NotebookLM's Cinematic Video Overview, but you control every frame.
+**cineFORGE** is part of the [LumenHelix Solutions](https://lumenhelix.com) portfolio — applied symbolic dynamics & reversible computation for deterministic, traceable AI systems.
 
-## Features
+cineFORGE is a local-first desktop application that turns source documents and outlines into coherent 30-second to 10-minute cinematic videos. It orchestrates an LLM director, multi-provider video adapters, and FFmpeg-based stitching so you control every seam: storyboard, style pack, per-shot prompt, transition, narration, and final cut.
 
-- **B-Roll Generation** — Auto-generate supplementary stock-footage clips for any shot via the MoneyPrinterTurbo bridge. Clips are tracked per-shot, support pagination, and can be downloaded individually or bulk-generated across an entire project.
+## Why this exists
 
-## Architecture
-
-- **Shell**: Tauri 2.x (Rust) — ~10 MB binary, native file dialogs, system tray
-- **Frontend**: SolidJS + Tailwind — fine-grained reactivity, no virtual DOM overhead
-- **Backend**: Python 3.12 + FastAPI — async-native, best-in-class video + LLM ecosystem
-- **Video**: Veo 3.1 (cloud), Wan 2.2 / LTX-Video / HunyuanVideo (local), ComfyUI (maximalist local)
-- **LLM**: LiteLLM gateway — one interface, ~100 providers, prompt caching + structured output
-- **Editing**: MoviePy 2.x + FFmpeg (system binary) — scriptable, no licensing trap
-- **Storage**: SQLite (WAL mode) + flat-file media — single-file project, zero server
+- **Own the pipeline.** From ingestion to final cut, every seam is editable and reversible.
+- **Switch providers.** Use cloud quality, local privacy, or hybrid previews without rewriting workflows.
+- **Stay local.** Projects live in SQLite + flat files — no required cloud, no lock-in.
 
 ## Quick start
 
-```bash
-# Install the backend
-pip install -e ".[vertex,fal]"
+Install and run cineFORGE in under two minutes.
 
-# Install the frontend
+### macOS / Linux
+
+```bash
+# Clone
+git clone https://github.com/lumenhelixsolutions/cineFORGE.git
+cd cineFORGE
+
+# Install & run
+# Create Python virtual environment
+python3.12 -m venv .venv
+.venv/bin/pip install --upgrade pip
+.venv/bin/pip install -e ".[vertex,fal,dev]"
+
+# Install frontend dependencies
 cd ui && npm install
 
-# Dev mode — Tauri launches the Python backend automatically
+# Start the desktop app
 cd .. && cargo tauri dev
-
-# Build release
-cargo tauri build
 ```
 
-See [docs/QUICKSTART.md](docs/QUICKSTART.md) for the full step-by-step guide, including API usage.
+### Windows (PowerShell)
 
-## MoneyPrinterTurbo Integration
+```powershell
+# Clone
+git clone https://github.com/lumenhelixsolutions/cineFORGE.git
+Set-Location cineFORGE
 
-CineForge embeds [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) as a submodule under `tools/moneyprinter/` for short-form / stock-footage video generation.
+# Install & run
+# Create Python virtual environment
+python -m venv .venv
+.venv\Scripts\pip install --upgrade pip
+.venv\Scripts\pip install -e ".[vertex,fal,dev]"
 
-### One-command setup
+# Install frontend dependencies
+cd ui
+npm install
+
+# Start the desktop app
+cd ..
+cargo tauri dev
+```
+
+### Windows (Git Bash / WSL)
 
 ```bash
-# Unix / macOS
-./scripts/init-moneyprinter.sh
+git clone https://github.com/lumenhelixsolutions/cineFORGE.git
+cd cineFORGE
+# Create Python virtual environment
+python3.12 -m venv .venv
+.venv/bin/pip install --upgrade pip
+.venv/bin/pip install -e ".[vertex,fal,dev]"
 
-# Windows
-scripts\init-moneyprinter.bat
+# Install frontend dependencies
+cd ui && npm install
+
+# Start the desktop app
+cd .. && cargo tauri dev
 ```
 
-### Configuration
+> **Device note:** cineFORGE is tested on Windows 11, macOS Sonoma, Ubuntu 22.04/24.04, and modern mobile browsers.
 
-Project-specific defaults live in `config/moneyprinter.toml`. Copy or symlink it to `tools/moneyprinter/config.toml` to activate.
+## Full documentation
 
-### Using the bridge
+Visit the launch page for architecture, API reference, and deployment guides:  
+**https://lumenhelixsolutions.github.io/cineFORGE/**
 
-```python
-from tools.shared.mpt_bridge import get_bridge
+## Features
 
-bridge = get_bridge()
-task = bridge.start_task(video_subject="A cinematic mountain sunrise")
-print(task["task_id"])
+| Feature | What it gives you |
+|---------|-------------------|
+| LLM Director | Auto-generate treatments, storyboards, per-shot prompts, and continuity bibles from any source document. |
+| Multi-provider video | Route to Vertex Veo, fal.ai, Wan2GP, ComfyUI, Kling, Sora, and more from one capability-aware pipeline. |
+| Local-first desktop | Tauri 2 shell + SolidJS UI + FastAPI backend keeps projects, media, and decisions on your machine. |
+| Deterministic editing | MoviePy + FFmpeg stitching with routing profiles, transitions, narration, and versioned project bundles. |
+
+## Architecture at a glance
+
+```
+cineFORGE/
+├── backend/     Python 3.12 + FastAPI — adapters, director, stitcher
+├── ui/          SolidJS + Tailwind — project editor and timeline
+└── src-tauri/   Tauri 2.x (Rust) — desktop shell and system bridge
 ```
 
-Start the MPT API server locally:
+## Development
 
 ```bash
-cd tools/moneyprinter && python main.py
+# Backend only
+.venv/bin/uvicorn backend.app:app --host 127.0.0.1 --port 8765 --reload
+
+# Frontend only
+cd ui && npm run dev
+
+# Full Tauri desktop app
+cargo tauri dev
 ```
 
-## Testing
+## Roadmap
 
-```bash
-# Backend unit + integration
-pytest tests/unit tests/integration -q
+- [ ] ComfyUI node-editor integration for custom local workflows
+- [ ] B-roll bulk generation via the MoneyPrinterTurbo bridge
+- [ ] One-click export to MP4, ProRes, and versioned project bundles
 
-# Frontend
-npm run test --prefix ui
+## Support & consulting
 
-# Type check
-mypy backend/ --strict --ignore-missing-imports
+Need deterministic AI systems with full traceability? LumenHelix builds reversible computation kernels, governance layers, and end-to-end AI integrations.
 
-# Lint
-ruff check backend/ scripts/ docs/
-```
-
-## Provider matrix (v0.1)
-
-| Provider | Type | Models | Native audio | Frame conditioning | Extend |
-|----------|------|--------|-------------|-------------------|--------|
-| Google Vertex AI | Cloud | Veo 3.1, Veo 3.1 Fast, Veo 3 | Yes | First + last | Yes (to 148s) |
-| fal.ai | Cloud aggregator | Veo 3.1, Sora 2, Kling 2.5, Hailuo 02, Runway Gen-4, etc. | Varies | Varies | Varies |
-| Wan2GP (localhost) | Local, low-VRAM | Wan 2.2 (1.3B / 14B GGUF), HunyuanVideo 1.5, LTX-Video 2.3 | No (LTX-2 yes) | Partial | No |
-| ComfyUI (localhost) | Local, maximalist | Any workflow JSON | Varies | Varies | Varies |
-
-## Routing profiles
-
-Ships with three named profiles in `routing.yaml`:
-
-- **cloud_premium** — best quality, paid
-- **local_two_stage** — fully local, recommended low-VRAM workflow
-- **hybrid** — local previews, cloud finals (cost-conscious default)
-
-Switch profiles without restarting. The Director re-evaluates bridge strategies against new capabilities automatically.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and architecture principles.  
-Agent contributors should read [AGENTS.md](AGENTS.md) for build steps, test commands, and conventions.
+- **Website:** https://lumenhelix.com
+- **Services:** AI diagnostics, B.Y.O. support packages, governance audits
+- **Research:** TEN² kernel, R.U.B.I.C. boundary discipline, C.O.R.E. constraint lens
 
 ## License
 
-MIT. See [THIRD_PARTY.md](THIRD_PARTY.md) for dependency licenses.
+Released under the MIT License. Style packs and shot grammars are CC-BY-4.0.
 
-Style packs and shot grammars are CC-BY-4.0.
+---
 
-## Credits
-
-- Veo team (Google) for the video generation model
-- Anthropic for Claude
-- MoviePy (MIT), FFmpeg (LGPL), Tauri (MIT/Apache-2.0), SolidJS (MIT)
+<p align="center">
+  <sub>Engineered by <a href="https://lumenhelix.com">LumenHelix Solutions</a> — Applied Symbolic Dynamics & Reversible Computation.</sub>
+</p>
