@@ -21,7 +21,7 @@ git push origin v0.2.0
 
 GitHub Actions `release.yml` triggers on `v*` tags and uploads **draft prerelease** assets (MSI, DMG, AppImage).
 
-1. Open https://github.com/lumenhelixsolutions/cineFORGE/releases
+1. Open https://github.com/lumenhelixlab/cineFORGE/releases
 2. Edit the draft release — paste body from `docs/RELEASE_NOTES_v0.2.0.md`
 3. Uncheck "pre-release" when ready for wide beta, or leave checked for early testers
 4. Publish
@@ -31,7 +31,7 @@ GitHub Actions `release.yml` triggers on `v*` tags and uploads **draft prereleas
 Workflow: `.github/workflows/pages.yml` deploys `landing/` on push to `master`.
 
 - Custom domain: `cineforge.app` (see `landing/CNAME`)
-- Configure DNS: CNAME `cineforge.app` → `lumenhelixsolutions.github.io` or Pages URL
+- Configure DNS: CNAME `cineforge.app` → `lumenhelixlab.github.io` or Pages URL
 - Enable Pages in repo Settings → Pages → Source: GitHub Actions
 
 ## Signing (Milestone 11 — not blocking unsigned beta)

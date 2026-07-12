@@ -21,7 +21,7 @@ Local-first desktop studio for document → cinematic video.
 
 ## Quick start
 
-1. Install from [GitHub Releases](https://github.com/lumenhelixsolutions/cineFORGE/releases)
+1. Install from [GitHub Releases](https://github.com/lumenhelixlab/cineFORGE/releases)
 2. Optional: `pip install -e ".[vertex,fal]"` for cloud adapters
 3. See [QUICKSTART.md](./QUICKSTART.md)
 

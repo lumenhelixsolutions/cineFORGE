@@ -1,7 +1,11 @@
 # cineFORGE
 
 <p align="center">
-  <img src="docs/assets/logo.svg" alt="cineFORGE logo" width="160">
+  <img src="docs/assets/hero.svg" alt="cineFORGE header" width="100%">
+</p>
+
+<p align="center">
+  <img src="docs/assets/logo.svg" alt="cineFORGE logo" width="120">
 </p>
 
 <h3 align="center">Documents to cinema.</h3>
@@ -11,7 +15,7 @@
 <p align="center">
   <a href="https://lumenhelixlab.github.io/cineFORGE/">Launch Page</a>
   <span> · </span>
-  <a href="https://github.com/LumenHelixLab/cineFORGE">GitHub</a>
+  <a href="https://github.com/lumenhelixlab/cineFORGE">GitHub</a>
   <span> · </span>
   <a href="https://lumenhelix.com">LumenHelix</a>
 </p>
@@ -31,7 +35,7 @@ cineFORGE is a local-first desktop application that turns source documents and o
 ### macOS / Linux
 
 ```bash
-git clone https://github.com/LumenHelixLab/cineFORGE.git
+git clone https://github.com/lumenhelixlab/cineFORGE.git
 cd cineFORGE
 python3.12 -m venv .venv
 .venv/bin/pip install --upgrade pip
@@ -43,7 +47,7 @@ cd .. && cargo tauri dev
 ### Windows (PowerShell)
 
 ```powershell
-git clone https://github.com/LumenHelixLab/cineFORGE.git
+git clone https://github.com/lumenhelixlab/cineFORGE.git
 Set-Location cineFORGE
 python -m venv .venv
 .venv\Scripts\pip install --upgrade pip
@@ -57,7 +61,7 @@ cargo tauri dev
 ### Windows (Git Bash / WSL)
 
 ```bash
-git clone https://github.com/LumenHelixLab/cineFORGE.git
+git clone https://github.com/lumenhelixlab/cineFORGE.git
 cd cineFORGE
 python3.12 -m venv .venv
 .venv/bin/pip install --upgrade pip

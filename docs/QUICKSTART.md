@@ -4,7 +4,7 @@
 
 ```bash
 # Clone or extract the release archive
-git clone https://github.com/lumenhelixsolutions/cineFORGE.git
+git clone https://github.com/lumenhelixlab/cineFORGE.git
 cd cineforge
 
 # Install Python dependencies
