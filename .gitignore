@@ -72,5 +72,4 @@ temp/
 perf_report.json
 
 # Docs build output
-docs/index.html
 docs/openapi.json
