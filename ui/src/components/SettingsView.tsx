@@ -95,7 +95,7 @@ export default function SettingsView() {
             <p>MIT License</p>
             <p>
               <a
-                href="https://github.com/lumenhelixsolutions/cineFORGE"
+                href="https://github.com/LumenHelixLab/cineFORGE"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-accent hover:underline"

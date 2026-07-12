@@ -9,9 +9,9 @@
 <p align="center">Turn source documents and outlines into cinematic videos with full creative control.</p>
 
 <p align="center">
-  <a href="https://lumenhelixsolutions.github.io/cineFORGE/">Launch Page</a>
+  <a href="https://lumenhelixlab.github.io/cineFORGE/">Launch Page</a>
   <span> · </span>
-  <a href="https://github.com/lumenhelixsolutions/cineFORGE">GitHub</a>
+  <a href="https://github.com/LumenHelixLab/cineFORGE">GitHub</a>
   <span> · </span>
   <a href="https://lumenhelix.com">LumenHelix</a>
 </p>
@@ -31,7 +31,7 @@ cineFORGE is a local-first desktop application that turns source documents and o
 ### macOS / Linux
 
 ```bash
-git clone https://github.com/lumenhelixsolutions/cineFORGE.git
+git clone https://github.com/LumenHelixLab/cineFORGE.git
 cd cineFORGE
 python3.12 -m venv .venv
 .venv/bin/pip install --upgrade pip
@@ -43,7 +43,7 @@ cd .. && cargo tauri dev
 ### Windows (PowerShell)
 
 ```powershell
-git clone https://github.com/lumenhelixsolutions/cineFORGE.git
+git clone https://github.com/LumenHelixLab/cineFORGE.git
 Set-Location cineFORGE
 python -m venv .venv
 .venv\Scripts\pip install --upgrade pip
@@ -57,7 +57,7 @@ cargo tauri dev
 ### Windows (Git Bash / WSL)
 
 ```bash
-git clone https://github.com/lumenhelixsolutions/cineFORGE.git
+git clone https://github.com/LumenHelixLab/cineFORGE.git
 cd cineFORGE
 python3.12 -m venv .venv
 .venv/bin/pip install --upgrade pip
