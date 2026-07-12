@@ -73,3 +73,8 @@ perf_report.json
 
 # Docs build output
 docs/openapi.json
+
+# Session artifacts
+auto_handoff.md
+tmppytest/
+

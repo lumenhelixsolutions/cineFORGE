@@ -1,4 +1,0 @@
-profiles:
-  test:
-    llm:
-      treatment: test.model
