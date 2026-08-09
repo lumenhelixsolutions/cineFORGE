@@ -40,6 +40,8 @@ Thumbs.db
 # Tauri / Node
 node_modules/
 ui/dist/
+ui/test-results/
+ui/playwright-report/
 src-tauri/target/
 src-tauri/gen/
 *.log

@@ -40,9 +40,38 @@ SAMPLE = {
 }
 
 
+SAMPLE_V02 = {
+    "schema": "lookbook.shot_graph.v0.2",
+    "total_shots": 1,
+    "shots": [
+        {
+            "shot_index": 0,
+            "scene_index": 0,
+            "type": "dialogue",
+            "camera": "zoom in",
+            "duration_seconds": 3.5,
+            "motion_directive": "Focus on character interaction.",
+            "dialogue": ['"Hello there."'],
+            "narration": [],
+            "characters": ["char_000"],
+            "panels": [0, 1],
+            "transition_in": "fade in",
+        },
+    ],
+}
+
+
 def test_parse_lookbook_shot_graph():
     data = parse_lookbook_shot_graph(SAMPLE)
     assert data["total_shots"] == 2
+
+
+def test_parse_accepts_v02_schema():
+    data = parse_lookbook_shot_graph(SAMPLE_V02)
+    assert data["total_shots"] == 1
+    shots = convert_lookbook_to_shots(SAMPLE_V02)
+    assert len(shots) == 1
+    assert shots[0]["continuity"]["characters"] == ["char_000"]
 
 
 def test_parse_rejects_empty_shots():

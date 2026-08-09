@@ -2,16 +2,28 @@ import { test, expect } from '@playwright/test';
 
 test.describe('CineForge UI - Full Project Lifecycle (Mocked)', () => {
   test.beforeEach(async ({ page }) => {
-    // Assuming the dev server is running and the backend is using mocks
+    // Skip the onboarding wizard deterministically instead of racing it.
+    //
+    // OnboardingWizard (see ui/src/components/OnboardingWizard.tsx) mounts
+    // immediately as a `fixed inset-0 z-50` overlay whenever
+    // localStorage['cineforge_onboarding_done'] isn't 'true', then runs an
+    // async /diagnostics call before it ever renders "Continue to App" (and
+    // never renders it at all if diagnostics come back "blocked"). The old
+    // `if (await continueBtn.isVisible())` check samples visibility at a
+    // single instant right after goto() — before that fetch has resolved —
+    // so it reliably read `false`, skipped the click, and left the wizard's
+    // opaque backdrop sitting on top of the app, intercepting every
+    // subsequent click for the rest of the test (this is what produced the
+    // "locator.click: Test timeout of 30000ms exceeded ... intercepts
+    // pointer events" failures on New Project across all three browsers).
+    //
+    // These tests exercise project lifecycle, not onboarding, so seed the
+    // "done" flag before the app's own scripts run rather than clicking
+    // through a wizard whose completion depends on live backend timing.
+    await page.addInitScript(() => {
+      window.localStorage.setItem('cineforge_onboarding_done', 'true');
+    });
     await page.goto('http://localhost:5173');
-
-    // Handle Onboarding Wizard if it appears
-    const continueBtn = page.getByRole('button', { name: /Continue to App/i });
-    if (await continueBtn.isVisible()) {
-        await continueBtn.click();
-        // Wait for the wizard to disappear
-        await expect(continueBtn).not.toBeVisible();
-    }
   });
 
   test('should create a new project and navigate to it', async ({ page }) => {

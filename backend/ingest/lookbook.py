@@ -9,6 +9,10 @@ from typing import Any
 
 
 LOOKBOOK_SCHEMA = "lookbook.shot_graph.v0.3"
+LOOKBOOK_SUPPORTED_SCHEMAS = (
+    "lookbook.shot_graph.v0.2",
+    LOOKBOOK_SCHEMA,
+)
 LOOKBOOK_CHOREOGRAPHY_SCHEMA = "lookbook.choreography.v0.1"
 VALID_DURATIONS = (4, 6, 8)
 BRIDGE_MAP = {
@@ -134,7 +138,7 @@ def parse_lookbook_shot_graph(payload: dict[str, Any] | str | Path) -> dict[str,
     if not isinstance(shots, list) or not shots:
         raise ValueError("lookBOOK shot graph must contain a non-empty shots array")
     schema = data.get("schema") or data.get("schema_version") or ""
-    if schema and LOOKBOOK_SCHEMA not in str(schema):
+    if schema and not any(s in str(schema) for s in LOOKBOOK_SUPPORTED_SCHEMAS):
         raise ValueError(f"Unsupported lookBOOK schema: {schema}")
     return data
 
